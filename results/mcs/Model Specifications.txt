@@ -1,0 +1,10 @@
+N = 100
+par = climatesensitivity
+yearstorun = 1050
+prtp = 0.001
+eta = 1.0
+gas = C
+emissionyear = 2010
+yearstoaggregate = 1000
+parameters = :nothing:
+useequityweights = false

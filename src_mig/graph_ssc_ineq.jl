@@ -110,9 +110,6 @@ sccres[!,:scc_fundnice] = scc_fn
 sccres[!,:scc_migfundnice] = scc_mfn
 sccres[!,:scc_diff] = sccres[!,:scc_migfundnice] .- sccres[!,:scc_fundnice]
 
-
-CSV.write(joinpath(@__DIR__,"../results/scc/sccres.csv"), sccres)
-
 # Results for FUND-NICE only
 sccres_fundnice = DataFrame(
     scen = repeat(ssps,outer=3*3),
@@ -142,7 +139,7 @@ sccres_fundnice[!,:scc_fundnice] = scc_fundnice
 
 
 ###################################### Compute Social Cost of Carbon using a modified function accounting for within-region inequality #################################################
-# Use default discounting parameters and equity weights. Calculate for CO2 using 3000 as last year of run. 
+# Use default discounting parameters and equity weights. Calculate for CO2 using 2020 as last year of run. 
 # Provide results for the 5 SSP-RCP combinations, for the 3 values of xi, and for years 2020, 2050, and 2100.
 
 # Helper function for computing SC from a MarginalModel that's already been run, not to be exported
@@ -227,6 +224,3 @@ end
 sccniceres[!,:sccnice_fundnice_2200] = sccnice_fn
 sccniceres[!,:sccnice_migfundnice_2200] = sccnice_mfn
 sccniceres[!,:sccnice_diff] = sccniceres[!,:sccnice_migfundnice] .- sccniceres[!,:sccnice_fundnice]
-
-
-CSV.write(joinpath(@__DIR__,"../results/scc/sccniceres.csv"), sccniceres)
