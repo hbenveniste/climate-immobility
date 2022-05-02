@@ -1,1 +1,1 @@
-# climate-immobility
+Data and code used in the following journal article: H. Benveniste, M. Oppenheimer, M. Fleurbaey (2022). “Climate change increases resource-constrained international immobility." Nature Climate Change. doi: .
