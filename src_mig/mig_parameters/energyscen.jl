@@ -3,7 +3,7 @@ using CSV, DataFrames, Statistics, Query
 
 regions = ["USA", "CAN", "WEU", "JPK", "ANZ", "EEU", "FSU", "MDE", "CAM", "LAM", "SAS", "SEA", "CHI", "MAF", "SSA", "SIS"]
 
-energytot = CSV.read(joinpath(@__DIR__, "../input_data/energytot_10.csv"))
+energytot = CSV.File(joinpath(@__DIR__, "../input_data/energytot_10.csv")) |> DataFrame
 
 countries = unique(energytot[:,:country])
 ssps = unique(energytot[:,:scenario])
@@ -11,7 +11,7 @@ ssps = unique(energytot[:,:scenario])
 
 ########################## Extend SSP final energy consumption scenarios with and without migration ######################################
 en_ssp = energytot[:,[:scenario, :period, :country, :en_mig, :en_nomig]]
-# Consider that energy consumption in 2010 for no migration is the same as with migration
+# Assume that energy consumption in 2010 for no migration is the same as with migration
 ind2010 = findall(energytot[:,:period].==2010)
 for i in ind2010
     en_ssp[i,:en_nomig] = en_ssp[i,:en_mig]
@@ -37,16 +37,16 @@ for i in 1:size(en_ssp,1)
 end
 
 # For 1950-2010: use default FUND scenario aeei (growth rate of energy intensity of GDP)
-scenpgrowth = CSV.read(joinpath(@__DIR__, "../input_data/scenpgrowth.csv"), header=false, datarow=2, delim = ",")
+scenpgrowth = CSV.File(joinpath(@__DIR__, "../input_data/scenpgrowth.csv"), header=false, datarow=2, delim = ",") |> DataFrame
 rename!(scenpgrowth, :Column1 => :year, :Column2 => :fundregion, :Column3 => :pgrowth)
-scenypcgrowth = CSV.read(joinpath(@__DIR__, "../input_data/scenypcgrowth.csv"), header=false, datarow=2, delim = ",")
+scenypcgrowth = CSV.File(joinpath(@__DIR__, "../input_data/scenypcgrowth.csv"), header=false, datarow=2, delim = ",") |> DataFrame
 rename!(scenypcgrowth, :Column1 => :year, :Column2 => :fundregion, :Column3 => :ypcgrowth)
-scenaeei = CSV.read(joinpath(@__DIR__, "../input_data/scenaeei.csv"), header=false, datarow=2, delim = ",")
+scenaeei = CSV.File(joinpath(@__DIR__, "../input_data/scenaeei.csv"), header=false, datarow=2, delim = ",") |> DataFrame
 rename!(scenaeei, :Column1 => :year, :Column2 => :fundregion, :Column3 => :aeei)
 scenengrowth = join(scenaeei, join(scenpgrowth, scenypcgrowth, on = [:year, :fundregion]), on = [:year, :fundregion])
 scenengrowth[!,:engrowth_f] = ((1 .+ scenengrowth[:,:aeei] ./ 100) .* (1 .+ scenengrowth[:,:ypcgrowth] ./ 100) .* (1 .+ scenengrowth[:,:pgrowth] ./ 100) .- 1) .* 100
 
-iso3c_fundregion = CSV.read("../input_data/iso3c_fundregion.csv")
+iso3c_fundregion = CSV.File("../input_data/iso3c_fundregion.csv") |> DataFrame
 rename!(iso3c_fundregion, :iso3c => :country)
 en_ssp = join(en_ssp, iso3c_fundregion, on = :country)
 
@@ -65,7 +65,7 @@ end
 sort!(en_ssp, [:scenario, :country, :period])
 
 # For 2100-2300: fixed growth rate of energy consumption per GDP at 2090-2100 rate (as done in IWG SCC, source by Kevin Rennert RFF)
-gdp_ssp = CSV.read(joinpath(@__DIR__,"../../Documents/WorkInProgress/migrations-Esteban-FUND/results/gdp_ssp.csv"))
+gdp_ssp = CSV.File(joinpath(@__DIR__,"../../../results/gdp_ssp.csv")) |> DataFrame
 en_ssp[:,:scen] = map(x -> SubString(x, 1:4), en_ssp[:,:scenario])
 gs2300 = @from i in gdp_ssp begin
     @where i.period <= 2300 && i.country in countries
@@ -78,7 +78,7 @@ for i in 1:size(en_ssp,1)
         en_ssp[i,:scenario] = en_ssp[i,:scen]=="SSP1" ? en_ssp[i,:scenario]=ssps[1] : (en_ssp[i,:scen]=="SSP2" ? en_ssp[i,:scenario]=ssps[2] : (en_ssp[i,:scen]=="SSP3" ? en_ssp[i,:scenario]=ssps[3] : (en_ssp[i,:scen]=="SSP4" ? en_ssp[i,:scenario]=ssps[4] : en_ssp[i,:scenario]=ssps[5])))
     end
 end
-# If growth rate >0 in 2100, declining growth rate of energy per GDP until 0 in 2300 (otherwise crazy amount of energy)
+# If growth rate >0 in 2100, declining growth rate of energy per GDP until 0 in 2300
 sort!(en_ssp, [:scenario,:country,:period])
 for s in ssps
     for c in countries
@@ -132,19 +132,6 @@ for i in 1:size(en_ssp,1)
     end
 end
 
-#en_fut = DataFrame(
-#    scenario = repeat(ssps, inner = length(2301:3000)*length(countries)),
-#    period = repeat(2301:3000, outer = length(ssps)*length(countries)),
-#    country = repeat(countries, inner = length(2301:3000), outer = length(ssps)),
-#    en_mig = repeat(en2300[:,:en_mig], inner=length(2301:3000)),
-#    en_nomig = repeat(en2300[:,:en_nomig], inner=length(2301:3000))
-#)
-#en_fut[:,:scen] = map(x -> SubString(x, 1:4), en_fut[:,:scenario])
-#en_fut = join(en_fut, gs3000, on=[:scen,:period,:country], kind=:outer)
-#permutecols!(en_fut, [1,2,3,4,5,9,6,7,8])
-#en_ssp = vcat(en_ssp, en_fut)
-#sort!(en_ssp, [:scenario, :country, :period])
-
 # Convert to FUND regions
 en_ssp_f = by(en_ssp, [:period, :scenario, :fundregion, :scen], d -> (en_mig = sum(skipmissing(d.en_mig)), en_nomig = sum(skipmissing(d.en_nomig))))
 
@@ -163,4 +150,4 @@ for s in ssps
     CSV.write(joinpath(@__DIR__, string("../scen/en_mig_", s, ".csv")), en_ssp_f[(en_ssp_f[:,:scen].==s),[:period, :fundregion, :en_mig]]; writeheader=false)
     CSV.write(joinpath(@__DIR__, string("../scen/en_nomig_", s, ".csv")), en_ssp_f[(en_ssp_f[:,:scen].==s),[:period, :fundregion, :en_nomig]]; writeheader=false)
 end
-CSV.write(joinpath(@__DIR__, "../../Documents/WorkInProgress/migrations-Esteban-FUND/results/en_ssp.csv"), en_ssp)
+CSV.write(joinpath(@__DIR__, "../../../results/en_ssp.csv"), en_ssp)

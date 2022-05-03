@@ -3,7 +3,7 @@ using CSV, DataFrames, Statistics, Query
 
 regions = ["USA", "CAN", "WEU", "JPK", "ANZ", "EEU", "FSU", "MDE", "CAM", "LAM", "SAS", "SEA", "CHI", "MAF", "SSA", "SIS"]
 
-emtot = CSV.read(joinpath(@__DIR__, "../input_data/emtot_10.csv"))
+emtot = CSV.File(joinpath(@__DIR__, "../input_data/emtot_10.csv")) |> DataFrame
 
 countries = unique(emtot[:,:country])
 ssps = unique(emtot[:,:scenario])
@@ -47,8 +47,8 @@ for i in 1:size(em_ssp,1)
 end
 em_ssp[:,:scen] = map(x -> SubString(x, 1:4), em_ssp[:,:scenario])
 
-# For 1990-2015: use CMIP6 historical projection as given by Matt
-em_hist_all = CSV.read(joinpath(@__DIR__, "../input_data/emhist_10.csv"))
+# For 1990-2015: use CMIP6 historical projection 
+em_hist_all = CSV.File(joinpath(@__DIR__, "../input_data/emhist_10.csv")) |> DataFrame
 em_hist_sect = @from i in em_hist_all begin
     @where i.gas == "Emissions|CO2"
     @select {i.period, i.country, i.type, i.em_hist}
@@ -69,14 +69,14 @@ em_ssp = vcat(em_ssp, em_past)
 sort!(em_ssp, [:scenario, :country, :period])
 
 # For 1950-1990: use default FUND scenario acei (growth rate of emissions per energy consumption)
-scenaeei = CSV.read(joinpath(@__DIR__, "../input_data/scenaeei.csv"), header=false, datarow=2, delim = ",")
+scenaeei = CSV.File(joinpath(@__DIR__, "../input_data/scenaeei.csv"), header=false, datarow=2, delim = ",") |> DataFrame
 rename!(scenaeei, :Column1 => :year, :Column2 => :fundregion, :Column3 => :aeei)
-scenacei = CSV.read(joinpath(@__DIR__, "../input_data/scenacei.csv"), header=false, datarow=2, delim = ",")
+scenacei = CSV.File(joinpath(@__DIR__, "../input_data/scenacei.csv"), header=false, datarow=2, delim = ",") |> DataFrame
 rename!(scenacei, :Column1 => :year, :Column2 => :fundregion, :Column3 => :acei)
 scenemgrowth = join(scenaeei, scenacei, on = [:year, :fundregion])
 rename!(scenemgrowth, :year => :period)
 
-gdp_ssp = CSV.read(joinpath(@__DIR__,"../../Documents/WorkInProgress/migrations-Esteban-FUND/results/gdp_ssp.csv"))
+gdp_ssp = CSV.File(joinpath(@__DIR__,"../../../results/gdp_ssp.csv")) |> DataFrame
 em_ssp = join(em_ssp, gdp_ssp[(gdp_ssp[:,:period].<=2100),:], on = [:period, :scen, :country], kind = :outer)
 em_ssp = join(em_ssp, scenemgrowth[(scenemgrowth[:,:period].<=2100),:], on = [:period, :fundregion], kind = :outer)
 for i in 1:size(em_ssp,1)
@@ -100,7 +100,7 @@ sort!(em_ssp, [:scenario, :country, :period])
 
 # For 2100-2300: 
 # Remove CO2 LULUCF net: linear decline in emissions reaching 0 in 2200
-em_ds = CSV.read(joinpath(@__DIR__, "../input_data/em_downscaled.csv"))
+em_ds = CSV.File(joinpath(@__DIR__, "../input_data/em_downscaled.csv")) |> DataFrame
 rename!(em_ds, :variable => :type)
 select!(em_ds, Not(6:30))        # remove historical years
 emissions = stack(em_ds, 6:size(em_ds,2))
@@ -115,10 +115,9 @@ em_lu = @from i in emissions begin
     @collect DataFrame
 end
 describe(em_lu)
-# Surprising: no emissions from LULUCF in Matt's dataset. So no need to remove them 
 
 # For CO2 emissions from fossil fuels and industry: fixed growth rate of emissions per GDP at 2090-2100 rate (as done in IWG SCC, source by Kevin Rennert RFF)
-# If growth rate >0 in 2100, declining growth rate of emissions per GDP until 0 in 2300 (otherwise crazy amount of positive or negative emissions)
+# If growth rate >0 in 2100, declining growth rate of emissions per GDP until 0 in 2300
 gs2300 = @from i in gdp_ssp begin
     @where i.period <= 2300 && i.period >= 2100
     @select {i.period, i.scen, i.country, i.gdp_mig, i.gdp_nomig, i.fundregion}
@@ -135,7 +134,7 @@ for s in ssps
     for c in unique(gdp_ssp[:,:country])
         ind2100 = intersect(findall(em_ssp[:,:scenario].==s),findall(em_ssp[:,:country].==c),findall(em_ssp[:,:period].==2100))
         ind2090 = intersect(findall(em_ssp[:,:scenario].==s),findall(em_ssp[:,:country].==c),findall(em_ssp[:,:period].==2090))
-        # Limit growth rate of emissions to +/-50% per decade, otherwise crazy numbers
+        # Limit growth rate of emissions to +/-50% per decade
         g2100_mig = min(0.05, max(-0.05, 1 / 10 * ((em_ssp[ind2100,:em_mig][1] / em_ssp[ind2100,:gdp_mig][1]) / (em_ssp[ind2090,:em_mig][1] / em_ssp[ind2090,:gdp_mig][1]) - 1)))
         g2100_nomig = min(0.05, max(-0.05, 1 / 10 * ((em_ssp[ind2100,:em_nomig][1] / em_ssp[ind2100,:gdp_nomig][1]) / (em_ssp[ind2090,:em_nomig][1] / em_ssp[ind2090,:gdp_nomig][1]) - 1)))
         for t in 2101:2300
@@ -189,19 +188,6 @@ for i in 1:size(em_ssp,1)
     end
 end
 
-#em_fut = DataFrame(
-#    scenario = repeat(ssps, inner = length(2301:3000)*length(unique(em2300[:,:country]))),
-#    period = repeat(2301:3000, outer = length(ssps)*length(unique(em2300[:,:country]))),
-#    country = repeat(unique(em2300[:,:country]), inner = length(2301:3000), outer = length(ssps)),
-#    em_mig = repeat(em2300[:,:em_mig], inner=length(2301:3000)),
-#    em_nomig = repeat(em2300[:,:em_nomig], inner=length(2301:3000))
-#)
-#em_fut[:,:scen] = map(x -> SubString(x, 1:4), em_fut[:,:scenario])
-#em_fut = join(em_fut, gs3000, on=[:scen,:period,:country], kind=:outer)
-#permutecols!(em_fut, [1,2,3,6,4,5,7,8,9])
-#em_ssp = vcat(em_ssp[:,Not([:aeei,:acei])], em_fut)
-#sort!(em_ssp, [:scenario, :country, :period])
-
 # Convert to FUND regions
 em_ssp_f = by(em_ssp, [:period, :scenario, :scen, :fundregion], d -> (em_mig = sum(skipmissing(d.em_mig)), em_nomig = sum(skipmissing(d.em_nomig))))
 # Remove data from small countries that don't have a corresponding FUND region: "ASM", "ATG", "BMU", "COK", "CUW", "CYM", "DMA", "ESH", "FLK", "FRO", "FSM", "GIB", "GLP", "GRD", "GRL", "GUF", "GUM", "KIR", "KNA", "LIE", "MHL", "MSR","MTQ", "NIU", "PLW", "PRK", "REU", "SPM", "SRB (KOSOVO)", "SSD", "SXM", "SYC", "TCA", "TKL", "VGB", "VIR", "WLF"
@@ -219,4 +205,4 @@ for s in ssps
     CSV.write(joinpath(@__DIR__, string("../scen/em_mig_", s, ".csv")), em_ssp_f[(em_ssp_f[:,:scen].==s),[:period, :fundregion, :em_mig]]; writeheader=false)
     CSV.write(joinpath(@__DIR__, string("../scen/em_nomig_", s, ".csv")), em_ssp_f[(em_ssp_f[:,:scen].==s),[:period, :fundregion, :em_nomig]]; writeheader=false)
 end
-CSV.write(joinpath(@__DIR__, "../../Documents/WorkInProgress/migrations-Esteban-FUND/results/em_ssp.csv"), em_ssp)
+CSV.write(joinpath(@__DIR__, "../../../results/em_ssp.csv"), em_ssp)

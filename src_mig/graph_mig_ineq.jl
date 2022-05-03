@@ -486,6 +486,5 @@ migration_quint_nofert_p |> @filter(_.year >= 2015 && _.year <= 2100) |> @vlplot
     x={"year:o", axis={labelFontSize=16, values = 2010:10:2100}, title=nothing},
     y={"leave_quint_ccshare_xi0:q", title = "CC effect on total emigrants", axis={labelFontSize=20,titleFontSize=20}},
     color={"quintile:o",scale={scheme=:darkmulti},legend={title = "Quintile", titleFontSize=20, symbolSize=80, labelFontSize=20}},
-    #shape={"damage_elasticity:o",legend={title = "Damages elasticity", titleFontSize=20, titleLimit=260, symbolSize=80, labelFontSize=20}},
     resolve = {scale={y=:independent}}
 ) |> save(joinpath(@__DIR__, "../results/migflow_ineq/", string("leave_quint_ccshare_nofert_SSP2_damindep_v5.png")))

@@ -2,22 +2,26 @@ using CSV, DataFrames, DelimitedFiles, ExcelFiles, XLSX
 using Plots, VegaLite, FileIO, VegaDatasets, FilePaths, ImageIO, ImageMagick
 using Statistics, Query, Distributions, StatsPlots
 
+
 # Calculate income levels of migrants, using bilateral flows
-# Education levels of migrants: use SSP projections. 2 issues:
-# 1. data available for in- and out-migration, not bilateral flows
-# 2. data available starting 2015
+# Education levels of migrants: use SSP projections. 
 
-
-################## Read data for original SSP Gini projections #####################################
-gini = CSV.read(joinpath(@__DIR__, "../../yssp/data/gini_rao/ssp_ginis.csv"), DataFrame)
+gini = CSV.File(joinpath(@__DIR__, "../../../../YSSP_IIASA/data/gini_rao/ssp_ginis.csv")) |> DataFrame
 edu = ["e1","e2","e3","e4","e5","e6"]
+iso3c_isonum = CSV.File(joinpath(@__DIR__,"../input_data/iso3c_isonum.csv")) |> DataFrame
+iso3c_fundregion = CSV.File("../input_data/iso3c_fundregion.csv") |> DataFrame
+regions_fullname = DataFrame(
+    fundregion=["USA", "CAN", "WEU", "JPK", "ANZ", "EEU", "FSU", "MDE", "CAM", "LAM", "SAS", "SEA", "CHI", "MAF", "SSA", "SIS"],
+    regionname = ["United States","Canada","Western Europe", "Japan & South Korea","Australia & New Zealand","Central & Eastern Europe","Former Soviet Union", "Middle East", "Central America", "South America","South Asia","Southeast Asia","China plus", "North Africa","Sub-Saharan Africa","Small Island States"]
+)
+
 
 ################## Prepare population data: original SSP and no-migration version ####################
-ssp1 = CSV.read(joinpath(@__DIR__, "../../yssp/data/pop_samirkc/SSP1.csv"), DataFrame)
-ssp2 = CSV.read(joinpath(@__DIR__, "../../yssp/data/pop_samirkc/SSP2.csv"), DataFrame)
-ssp3 = CSV.read(joinpath(@__DIR__, "../../yssp/data/pop_samirkc/SSP3.csv"), DataFrame)
-ssp4 = CSV.read(joinpath(@__DIR__, "../../Documents/YSSP_IIASA/data/pop_samirkc/SSP4.csv"), DataFrame)
-ssp5 = CSV.read(joinpath(@__DIR__, "../../Documents/YSSP_IIASA/data/pop_samirkc/SSP5.csv"), DataFrame)
+ssp1 = CSV.File(joinpath(@__DIR__, "../../../../YSSP_IIASA/data/pop_samirkc/SSP1.csv")) |> DataFrame
+ssp2 = CSV.File(joinpath(@__DIR__, "../../../../YSSP_IIASA/data/pop_samirkc/SSP2.csv")) |> DataFrame
+ssp3 = CSV.File(joinpath(@__DIR__, "../../../../YSSP_IIASA/data/pop_samirkc/SSP3.csv")) |> DataFrame
+ssp4 = CSV.File(joinpath(@__DIR__, "../../../../YSSP_IIASA/data/pop_samirkc/SSP4.csv")) |> DataFrame
+ssp5 = CSV.File(joinpath(@__DIR__, "../../../../YSSP_IIASA/data/pop_samirkc/SSP5.csv")) |> DataFrame
 
 select!(ssp1, Not(:Column1))
 select!(ssp2, Not(:Column1))
@@ -43,7 +47,7 @@ for name in [:inmig, :outmig]
     end
     ssp[!,name] = map(x -> parse(Float64, x), ssp[!,name])
 end
-CSV.write(joinpath(@__DIR__,"../../Documents/data/SSP/ssp.csv"), ssp)
+CSV.write(joinpath(@__DIR__,"../../../results/ssp.csv"), ssp)
 
 # Sum projections for all sexes and ages: population + net migration per country and time period
 ssp_edu = combine(d -> (pop=sum(d.pop), outmig=sum(d.outmig), inmig=sum(d.inmig)), groupby(ssp, [:region, :period, :scen, :edu]))
@@ -64,8 +68,6 @@ sort(ssp_edu,[:scen,:period,:region,:edu,])
 
 ################################################### Calculate education levels of migrants #########################################
 # Plot evolution of outmig and inmig per education level for all SSP
-# Plot CI for outmig: some difference in emigrants education distribution across origin countries, for a given SSP
-# Plot median for inmig: almost no difference in emigrants education distribution across destination countries, for a given SSP
 ssp_edu |> @filter(_.period <2100) |> @vlplot(
     mark={:errorband, extent=:ci}, y="outmig_share:q", x="period:o", row = {"edu:o", axis={labelFontSize=16}, title=nothing},
     color={"scen:o", scale={scheme=:category10}}
@@ -84,45 +86,17 @@ ssp_edu |> @filter(_.period <2100) |> @vlplot(
     color={"edu:o", scale={scheme=:dark2}, legend={title = "Education level", titleFontSize=20, symbolSize=80, labelFontSize=20, titleLimit=260}}
 ) |> save(joinpath(@__DIR__, "../results/education/", "inmig_ssp.png"))
 
-ssp_edu |> @vlplot(
-    mark={:errorband, extent=:ci}, y="pop_share:q", x="period:o", row = {"edu:o", axis={labelFontSize=16}, title=nothing},
-    color={"scen:o", scale={scheme=:category10}}
-) |> save(joinpath(@__DIR__, "../results/education/", "pop_edu.png"))
-ssp_edu |> @vlplot(
-    mark={:errorband, extent=:ci}, y="pop_share:q", x="period:o", row = {"scen:o", axis={labelFontSize=16}, title=nothing},
-    color={"edu:o", scale={scheme=:dark2}}
-) |> save(joinpath(@__DIR__, "../results/education/", "pop_ssp.png"))
-
 # Plot changes in outmig/inmig compared to changes in pop
 ssp_edu[!,:outmigpop_ratio] = ssp_edu[:,:outmig_share] ./ ssp_edu[:,:pop_share]
 ssp_edu[!,:inmigpop_ratio] = ssp_edu[:,:inmig_share] ./ ssp_edu[:,:pop_share]
 ssp_edu[!,:outmigpop_diff] = ssp_edu[:,:outmig_share] .- ssp_edu[:,:pop_share]
 ssp_edu[!,:inmigpop_diff] = ssp_edu[:,:inmig_share] .- ssp_edu[:,:pop_share]
 
-ssp_edu |> @filter(_.period > 2015 && _.period < 2100) |> @vlplot(
-    mark={:errorband, extent=:ci}, y="outmigpop_ratio:q", x="period:o", row = {"scen:o", axis={labelFontSize=16}, title=nothing},
-    color={"edu:o", scale={scheme=:dark2}}
-) |> save(joinpath(@__DIR__, "../results/education/", "outmigpop_ratio.png"))
-ssp_edu |> @filter(_.period > 2015 && _.period < 2100) |> @vlplot(
-    mark={:errorband, extent=:ci}, y="inmigpop_ratio:q", x="period:o", row = {"scen:o", axis={labelFontSize=16}, title=nothing},
-    color={"edu:o", scale={scheme=:dark2}},
-    resolve = {scale={y=:independent}}
-) |> save(joinpath(@__DIR__, "../results/education/", "inmigpop_ratio.png"))
-ssp_edu |> @filter(_.period > 2015 && _.period < 2100) |> @vlplot(
-    mark={:errorband, extent=:ci}, y="outmigpop_diff:q", x="period:o", row = {"scen:o", axis={labelFontSize=16}, title=nothing},
-    color={"edu:o", scale={scheme=:dark2}}
-) |> save(joinpath(@__DIR__, "../results/education/", "outmigpop_diff.png"))
-ssp_edu |> @filter(_.period > 2015 && _.period < 2100) |> @vlplot(
-    mark={:errorband, extent=:ci}, y="inmigpop_diff:q", x="period:o", row = {"scen:o", axis={labelFontSize=16}, title=nothing},
-    color={"edu:o", scale={scheme=:dark2}},
-    #resolve = {scale={y=:independent}}
-) |> save(joinpath(@__DIR__, "../results/education/", "inmigpop_diff.png"))
-
 CSV.write(joinpath(@__DIR__, "../input_data/ssp_edu.csv"), ssp_edu)
 
-# Bottom line: education distribution among migrants vary a lot over time. We cannot assume that they would have been constant for all of 1990-2015.
-# Thus we just calibrate on the 2010-2015 period, assuming that migrants' education level is the same as the mean of SSP scenarios for 2015-2020
 
+# Education distribution among migrants vary a lot over time. We cannot assume that they would have been constant for all of 1990-2015.
+# Thus we just calibrate on the 2010-2015 period, assuming that migrants' education level is the same as the mean of SSP scenarios for 2015-2020
 edu_level = sort(
     combine(
         d->(pop=mean(d.pop),outmig=mean(d.outmig),inmig=mean(d.inmig),pop_share=mean(d.pop_share),outmig_share=mean(d.outmig_share),inmig_share=mean(d.inmig_share)),
@@ -133,15 +107,13 @@ edu_level = sort(
     ),[:period,:region,:edu]
 )
 edu_level[!,:countrynum] = map(x->parse(Int,SubString(x,3)), edu_level[:,:region])
-iso3c_isonum = CSV.read(joinpath(@__DIR__,"../input_data/iso3c_isonum.csv"), DataFrame)
-# We're leaving out Micronesia (583) and the Channel Islands (830)
 edu_level = innerjoin(edu_level, rename(iso3c_isonum, :iso3c=>:country, :isonum=>:countrynum), on = :countrynum)
 sort!(edu_level, [:country, :edu])
 countries=unique(edu_level[:,:country])
 
 
 ################################################### Calculate income level of migrants #################################################
-# We're assuming that education level is perfectly correlated with income level. We attribute each education level to the corresponding income quintile.
+# We assume that education level is perfectly correlated with income level. We attribute each education level to the corresponding income quintile.
 for name in [:q1,:q2,:q3,:q4,:q5]
     edu_level[!,name] = zeros(size(edu_level,1))
 end
@@ -197,7 +169,7 @@ edu_quint = combine(d->(pop_quint=sum(d.pop_quintile),outmig_quint=sum(d.outmig_
 
 ######################################### Analyse outmigration as a function of emigrants' income ##################################
 # Prepare population data from the Wittgenstein Centre, based on historical data from the WPP 2019. We use data for 2010.
-pop_allvariants = CSV.read(joinpath(@__DIR__, "../input_data/WPP2019.csv"), DataFrame)
+pop_allvariants = CSV.File(joinpath(@__DIR__, "../input_data/WPP2019.csv")) |> DataFrame
 # We use the Medium variant, the most commonly used. Unit: thousands
 pop = @from i in pop_allvariants begin
     @where i.Variant == "Medium" && i.Time == 2010 
@@ -218,18 +190,17 @@ edu_quint = innerjoin(edu_quint, rename(pop, :PopTotal=>:pop)[:,3:4], on=:countr
 edu_quint = innerjoin(edu_quint, rename(gdp[(gdp[:,:year0].==2010),:],:Region=>:country)[:,Not(1)], on = :country)
 
 # Transform Gini coefficients into income quintiles (with migration)
-# I assume that the income distribution can be fitted by a lognormal distribution 
+# We assume that the income distribution can be fitted by a lognormal distribution 
 # Thus, inequality depends on a single parameter sigma which uniquely determines the shape of the Lorenz curves. 
 # The Gini coefficient also depends uniquely on this parameter (http://www.vcharite.univ-mrs.fr/PP/lubrano/cours/Lecture-4.pdf)
 # In particular, Gini = 2 * phi(sigma/sqrt(2)) -1 ; Lorenz curve: p -> phi(phi^-1(p) - sigma)    with phi the cdf of Normal(0,1)
 # So Lorenz curve can be described as function of Gini: p -> phi(phi^-1(p) - sqrt(2)*phi^-1((Gini+1)/2))
 # Note: phi^-1 is, in effect, the quantile function
-# I compute income quantiles: difference between values for two successive p on Lorenz curve
-p = range(0, step=0.2, stop=1)          # here I use income quintiles
+# We compute income quantiles: difference between values for two successive p on Lorenz curve
+p = range(0, step=0.2, stop=1)          # here we use income quintiles
 for q in 1:length(p)-1
     gini[!,Symbol(string("q", q))] = [cdf.(Normal(), quantile.(Normal(), p[q+1]) .- sqrt(2) .* quantile.(Normal(), (gini[!,:gini][i] + 1)/2)) - cdf.(Normal(), quantile.(Normal(), p[q]) .- sqrt(2) .* quantile.(Normal(), (gini[!,:gini][i] + 1)/2)) for i in 1:size(gini,1)]
 end
-# plot(p, cdf.(Normal(), quantile.(Normal(), p) .- sqrt(2) .* quantile.(Normal(), (0.49+1)/2)))           # plot corresponding Lorenz curve for Gini=0.49
 gini_stack = stack(gini,5:9)
 rename!(gini_stack, :variable=>:quintile,:value=>:gdpshare_quint)
 
@@ -240,44 +211,12 @@ edu_quint = innerjoin(edu_quint, rename(gini_stack[.&(gini_stack[:,:year].==2010
 edu_quint[!,:ypc_quint] = edu_quint[:,:gdp] .* 10^9 .* edu_quint[:,:gdpshare_quint] ./ (edu_quint[:,:pop] .* 1000 ./ 5)
 edu_quint[!,:ypc_rel] = edu_quint[:,:ypc_quint] ./ (edu_quint[:,:gdp] .* 10^9 ./ (edu_quint[:,:pop] .* 1000))
 
-# Plot outmigration as a function of emigrants' income
-# Income in quintile compared to average income
-edu_quint |> @vlplot(
-    mark={:line,}, y="outmig_quint:q", x="ypc_rel:q", color={"country:o", scale={scheme=:rainbow}}
-) |> save(joinpath(@__DIR__, "../results/education/", "outmig_ypcrel.png"))
-edu_quint |> @vlplot(
-    :line, y="inmig_quint:q", x="ypc_rel:q", color={"country:o", scale={scheme=:rainbow}}
-) |> save(joinpath(@__DIR__, "../results/education/", "inmig_ypcrel.png"))
-
-iso3c_fundregion = CSV.read("../input_data/iso3c_fundregion.csv", DataFrame)
 edu_quint = innerjoin(edu_quint, rename(iso3c_fundregion, :iso3c=>:country), on=:country)
-regions_fullname = DataFrame(
-    fundregion=["USA", "CAN", "WEU", "JPK", "ANZ", "EEU", "FSU", "MDE", "CAM", "LAM", "SAS", "SEA", "CHI", "MAF", "SSA", "SIS"],
-    regionname = ["United States","Canada","Western Europe", "Japan & South Korea","Australia & New Zealand","Central & Eastern Europe","Former Soviet Union", "Middle East", "Central America", "South America","South Asia","Southeast Asia","China plus", "North Africa","Sub-Saharan Africa","Small Island States"]
-)
 edu_quint = innerjoin(edu_quint, regions_fullname, on=:fundregion)
-edu_quint |> @vlplot(
-    :line, columns=4, wrap={"regionname:o", title=nothing, header={labelFontSize=24}}, y="outmig_quint:q", x="ypc_rel:q", color={"country:o", scale={scheme=:rainbow}}
-) |> save(joinpath(@__DIR__, "../results/education/", "outmig_ypcrel_reg.png"))
-edu_quint |> @vlplot(
-    :line, columns=4, wrap={"regionname:o", title=nothing, header={labelFontSize=24}}, y="inmig_quint:q", x="ypc_rel:q", color={"country:o", scale={scheme=:rainbow}}
-) |> save(joinpath(@__DIR__, "../results/education/", "inmig_ypcrel_reg.png"))
 
-# Quintile 
-edu_quint |> @vlplot(
-    mark={:line,}, y="outmig_quint:q", x="quintile:o", color={"country:o", scale={scheme=:rainbow}}
-) |> save(joinpath(@__DIR__, "../results/education/", "outmig_quint.png"))
-edu_quint |> @vlplot(
-    :line, y="inmig_quint:q", x="quintile:o", color={"country:o", scale={scheme=:rainbow}}
-) |> save(joinpath(@__DIR__, "../results/education/", "inmig_quint.png"))
-edu_quint |> @vlplot(
-    :line, columns=4, wrap={"regionname:o", title=nothing, header={labelFontSize=18}}, y="outmig_quint:q", x="quintile:o", color={"country:o", scale={scheme=:rainbow}}
-) |> save(joinpath(@__DIR__, "../results/education/", "outmig_quint_reg.png"))
-edu_quint |> @vlplot(
-    :line, columns=4, wrap={"regionname:o", title=nothing, header={labelFontSize=18}}, y="inmig_quint:q", x="quintile:o", color={"country:o", scale={scheme=:rainbow}}
-) |> save(joinpath(@__DIR__, "../results/education/", "inmig_quint_reg.png"))
 
 CSV.write(joinpath(@__DIR__,"../input_data/edu_quint.csv"),edu_quint)
+
 
 # Aggregated at region level
 ssp_2015_scen = combine(d -> (outmig = sum(d.outmig), inmig = sum(d.inmig)) ,groupby(ssp_edu[(ssp_edu[:,:period].==2015),:], [:region,:scen]))
@@ -307,9 +246,9 @@ edu_stack |> @vlplot(
 
 
 ####################################### Attribute income levels to bilateral migrant flows ########################################
-edu_quint = CSV.read(joinpath(@__DIR__,"../input_data/edu_quint.csv"), DataFrame)
-migflow_alldata = CSV.read(joinpath(@__DIR__, "../input_data/ac19.csv"), DataFrame)          # Use Abel and Cohen (2019)
-# From Abel and Cohen's paper, I choose Azose and Raftery's data, on Guy Abel's suggestion (based a demographic accounting, pseudo-Bayesian method, which performs the best)
+edu_quint = CSV.File(joinpath(@__DIR__,"../input_data/edu_quint.csv")) |> DataFrame
+migflow_alldata = CSV.File(joinpath(@__DIR__, "../input_data/ac19.csv")) |> DataFrame          # Use Abel and Cohen (2019)
+# From Abel and Cohen's paper, we choose Azose and Raftery's data:based a demographic accounting, pseudo-Bayesian method, which performs the best
 migflow_ar = migflow_alldata[:,[:year0, :orig, :dest, :da_pb_closed]]
 
 edu_bil = innerjoin(
@@ -326,7 +265,7 @@ edu_bil = innerjoin(
 # Strong assumption: the distribution of emigrants/immigrants among quintile levels is the same for all destinations/origins
 edu_bil[!,:flow_quint] = edu_bil[:,:flow] .* edu_bil[:,:outmig_quint] .* edu_bil[:,:inmig_quint]
 
-CSV.write(joinpath(@__DIR__,"../../Documents/WorkInProgress/migrations-Esteban-FUND/results/edu_bil.csv"),edu_bil)
+CSV.write(joinpath(@__DIR__,"../../../results/edu_bil.csv"),edu_bil)
 
 
 ############################################# Calculate income terciles of migrants #######################################
@@ -342,7 +281,6 @@ edu_level = sort(
     ),[:period,:region,:edu]
 )
 edu_level[!,:countrynum] = map(x->parse(Int,SubString(x,3)), edu_level[:,:region])
-iso3c_isonum = CSV.File(joinpath(@__DIR__,"../input_data/iso3c_isonum.csv")) |> DataFrame
 edu_level = innerjoin(edu_level, rename(iso3c_isonum, :iso3c=>:country, :isonum=>:countrynum), on = :countrynum)
 sort!(edu_level, [:country, :edu])
 countries=unique(edu_level[:,:country])

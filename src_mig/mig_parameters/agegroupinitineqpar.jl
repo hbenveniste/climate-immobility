@@ -2,10 +2,11 @@ using CSV, DataFrames, Query, DelimitedFiles, FileIO
 
 
 regions = ["USA", "CAN", "WEU", "JPK", "ANZ", "EEU", "FSU", "MDE", "CAM", "LAM", "SAS", "SEA", "CHI", "MAF", "SSA", "SIS"]
+iso3c_fundregion = CSV.File("../input_data/iso3c_fundregion.csv") |> DataFrame
 
 # Computing the initial stock of migrants, and how it declines over time
-# I use bilateral migration stocks from 2017 from the World Bank
-# In order to get its age distribution, I assume that it is the average of two age distributions in the destination country: 
+# We use bilateral migration stocks from 2017 from the World Bank
+# In order to get its age distribution, we assume that it is the average of two age distributions in the destination country: 
 # the one of migrants at time of migration in the period 2015-2020 (computed from the SSP2 as "share")
 # and the one of the overall destination population in the period 2015-2020 (based on SSP2)
 
@@ -38,7 +39,6 @@ migstock = innerjoin(migstock, ccode, on = :origin)
 rename!(migstock, :country_code => :orig_code)
 select!(migstock, Not([:origin, :destination]))
 
-iso3c_fundregion = CSV.read("../input_data/iso3c_fundregion.csv", DataFrame)
 rename!(iso3c_fundregion, :iso3c => :orig_code)
 migstock = leftjoin(migstock, iso3c_fundregion, on = :orig_code)
 rename!(migstock, :fundregion => :origin)
@@ -60,8 +60,8 @@ for c in ["SXM", "MAF", "CHI", "XKX"]
 end
 
 # Add data on education and income profiles of migrants.
-# Strong assumption: we use the profiles of 2015-2020 migrants in SSP for the migrant stocks (already there) at that time
-edu_quint = CSV.read(joinpath(@__DIR__,"../input_data/edu_quint.csv"), DataFrame)
+# We use the profiles of 2015-2020 migrants in SSP for the migrant stocks (already there) at that time
+edu_quint = CSV.File(joinpath(@__DIR__,"../input_data/edu_quint.csv")) |> DataFrame
 
 migstock_edu = innerjoin(
     migstock, 
@@ -74,7 +74,7 @@ migstock_edu = innerjoin(
     on=:dest_code
 )
 
-# Strong assumption: the distribution of emigrants/immigrants among quintile levels is the same for all destinations/origins
+# We assume that the distribution of emigrants/immigrants among quintile levels is the same for all destinations/origins
 migstock_edu[!,:stock_quint] = migstock_edu[:,:stock] .* migstock_edu[:,:outmig_quint] .* migstock_edu[:,:inmig_quint]
 
 # Summing for FUND regions
@@ -93,7 +93,8 @@ CSV.write("../data_mig_3d/migstockinit_ineq.csv", migstock_quint_reg[:,[:origin,
 
 
 ##################################################### Getting age distributions #################################################
-ssp = CSV.read(joinpath(@__DIR__, "../../Documents/data/SSP/ssp.csv"), DataFrame)
+ssp = CSV.File(joinpath(@__DIR__, "../../../results/ssp.csv")) |> DataFrame
+
 sspageedu = combine(d->(pop=sum(d.pop),outmig=sum(d.outmig),inmig=sum(d.inmig)), groupby(ssp, [:age,:edu,:region,:period,:scen]))
 agedist = @from i in sspageedu begin
     @where i.period == 2015 && i.scen == "SSP2"
@@ -114,13 +115,13 @@ for name in [:pop,:inmig,:outmig]
 end
 
 agedist[!,:countrynum] = map(x->parse(Int,SubString(x,3)), agedist[:,:region])
-iso3c_isonum = CSV.read(joinpath(@__DIR__,"../input_data/iso3c_isonum.csv"), DataFrame)
+iso3c_isonum = CSV.File(joinpath(@__DIR__,"../input_data/iso3c_isonum.csv")) |> DataFrame
 agedist = innerjoin(agedist, rename(iso3c_isonum, :iso3c=>:country, :isonum=>:countrynum), on = :countrynum)
 sort!(agedist, [:country, :age, :edu])
 countries=unique(agedist[:,:country])
 
 # Calculate income level of migrants
-# We're assuming that education level is perfectly correlated with income level. We attribute each education level to the corresponding income quintile.
+# We assume that education level is perfectly correlated with income level. We attribute each education level to the corresponding income quintile.
 for name in [:q1,:q2,:q3,:q4,:q5]
     agedist[!,name] = zeros(size(agedist,1))
 end
@@ -173,7 +174,7 @@ age_cross[!,:inmig_quintile] = age_cross[:,:pop_quintile] ./ age_cross[:,:pop_sh
 
 age_quint = combine(d->(pop_quint=sum(d.pop_quintile),outmig_quint=sum(d.outmig_quintile),inmig_quint=sum(d.inmig_quintile)), groupby(age_cross,[:country,:quintile,:age]))
 
-# In order to get its age distribution, I assume that it is the average of two age distributions in the destination country: 
+# In order to get its age distribution, we assume that it is the average of two age distributions in the destination country: 
 # the one of migrants at time of migration and the one of the overall destination population, both in the period 2015-2020 (based on SSP2)
 age_quint[!,:mean_quint] = (age_quint[:,:pop_quint] .+ age_quint[:,:inmig_quint]) ./ 2
 age_quint[!,:quintile] = map(x->String(x), age_quint[:,:quintile])
@@ -230,7 +231,3 @@ for o in 0:length(regions)-1
 end
 
 CSV.write("../data_mig_3d/agegroupinit_ineq.csv", migstock_quint_all[:,[:origin, :destination, :quint_or, :quint_de, :ageall,:stock_age_reg]]; writeheader=false)
-
-# Try to correct discrepancy between sum(migstock_quint_all) and migstock_quint_reg
-migstock_quint_reg_corr = combine(d->sum(d.stock_age_reg), groupby(migstock_quint_all, 1:4))
-CSV.write("../data_mig_3d/migstockinit_ineq.csv", migstock_quint_reg_corr; writeheader=false)

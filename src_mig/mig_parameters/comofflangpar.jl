@@ -1,10 +1,11 @@
 using CSV, DataFrames, ExcelFiles, Query, DelimitedFiles, Statistics
 
+
 # Calculating the dummies indicating where two regions have common official languages, psi.
 
 # Reading migrant flows at country * country level; data for Azose and Raftery (2018) as compiled in Abel and Cohen (2019).
-migflow_alldata = CSV.read(joinpath(@__DIR__, "../../yssp/data/migflow_all/ac19.csv"))
-migflow_ar = migflow_alldata[:,[:year0, :orig, :dest, :da_pb_closed]]       # select Azose-Raftery data
+migflow_alldata = CSV.File(joinpath(@__DIR__, "../../yssp/data/migflow_all/ac19.csv")) |> DataFrame
+migflow_ar = migflow_alldata[:,[:year0, :orig, :dest, :da_pb_closed]]      
 
 countries = unique(migflow_ar[:,:orig])
 comol = DataFrame(
@@ -59,8 +60,8 @@ for l in offlang
 end
 
 # Transposing to FUND region * region level. 
-# Dummies will actually be numbers in [0,1] as weighted averages of relevant dummies. We weight corridors by migrant flows.
-iso3c_fundregion = CSV.read("../input_data/iso3c_fundregion.csv")
+# Use numbers in [0,1] as weighted averages of relevant dummies. We weight corridors by migrant flows.
+iso3c_fundregion = CSV.File("../input_data/iso3c_fundregion.csv") |> DataFrame
 rename!(iso3c_fundregion, :iso3c => :orig, :fundregion => :originregion)
 comol = join(comol, iso3c_fundregion, on = :orig)
 rename!(iso3c_fundregion, :orig => :dest, :originregion => :destinationregion)

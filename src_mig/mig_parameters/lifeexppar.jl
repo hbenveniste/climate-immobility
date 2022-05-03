@@ -5,7 +5,7 @@ regions = ["USA", "CAN", "WEU", "JPK", "ANZ", "EEU", "FSU", "MDE", "CAM", "LAM",
 
 
 # Calculating population weights based on country level population data in 2015 from the UN World Population Prospects 2019
-pop_allvariants = CSV.read(joinpath(@__DIR__, "../input_data/WPP2019.csv"))
+pop_allvariants = CSV.File(joinpath(@__DIR__, "../input_data/WPP2019.csv")) |> DataFrame
 # We use the Medium variant, the most commonly used. Unit: thousands
 pop2015 = @from i in pop_allvariants begin
     @where i.Variant == "Medium" && i.Time == 2015
@@ -21,7 +21,7 @@ pop2015 = push!(pop2015, [832, "Jersey", pop2015[channelsind,:PopTotal]*0.6])
 pop2015 = pop2015[[1:(channelsind-1); (channelsind+1:end)],:]
 rename!(pop2015, :LocID => :isonum, :Location => :country, :PopTotal => :pop)
 
-isonum_fundregion = CSV.read("../input_data/isonum_fundregion.csv")
+isonum_fundregion = CSV.File("../input_data/isonum_fundregion.csv") |> DataFrame
 pop2015weight = join(pop2015, isonum_fundregion, on = :isonum, kind = :inner)
 weight = by(pop2015weight, :fundregion, df -> sum(df[!,:pop]))
 pop2015weight[!,:weight] = [pop2015weight[i,:pop] / weight[!,:x1][findfirst(weight[!,:fundregion] .== pop2015weight[i,:fundregion])] for i in 1:size(pop2015weight,1)]
@@ -29,10 +29,9 @@ pop2015weight[!,:weight] = [pop2015weight[i,:pop] / weight[!,:x1][findfirst(weig
 
 # Calculating life expectancy scenarios at region level
 # Data on SSP scenarios life expectancy is available from Wittgenstein Centre for 1950-2100. 
-# We provide all SSP but have used SSP2 so far.  
 # We assume constant life expectancy after 2100
 
-lifeexp = CSV.read(joinpath(@__DIR__,"../input_data/lifeexp.csv");header=9)
+lifeexp = CSV.File(joinpath(@__DIR__,"../input_data/lifeexp.csv");header=9) |> DataFrame
 select!(lifeexp, Not(:Area))
 lifeexp[!,:Period] = map( x -> parse(Int, SubString(x, 1:4)), lifeexp[!,:Period])
 lifeexp = by(lifeexp, [:Scenario, :Period, :ISOCode], d -> mean(d.Years))               # Compute life expectancy for overall population as average between male and female
@@ -48,7 +47,7 @@ deleterows!(lifeexp, channelsind)
 deleterows!(lifeexp, findall(lifeexp[!,:ISOCode] .== 900))        # Delete data for world
 sort!(lifeexp, [:Scenario, :Period, :ISOCode])
 
-# I only have data for SSP1,2,3, but based on mortality assumptions mentioned in KC and Lutz (2017), I assume that SSP4 ~ SSP2, and SSP5 ~ SSP1
+# Data only for SSP1,2,3, but based on mortality assumptions mentioned in KC and Lutz (2017), we assume that SSP4 ~ SSP2, and SSP5 ~ SSP1
 lifeexp_ssp4 = lifeexp[(lifeexp[!,:Scenario] .== "SSP2"),:]
 lifeexp_ssp4[!,:Scenario] = repeat(["SSP4"], size(lifeexp_ssp4,1))
 lifeexp_ssp5 = lifeexp[(lifeexp[!,:Scenario] .== "SSP1"),:]

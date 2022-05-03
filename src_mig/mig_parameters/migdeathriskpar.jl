@@ -3,6 +3,7 @@ using CSV, DataFrames, ExcelFiles
 
 regions = ["USA", "CAN", "WEU", "JPK", "ANZ", "EEU", "FSU", "MDE", "CAM", "LAM", "SAS", "SEA", "CHI", "MAF", "SSA", "SIS"]
 ind = Dict(regions[i] => i for i in 1:length(regions))
+iso3c_fundregion = CSV.File("../input_data/iso3c_fundregion.csv") |> DataFrame
 
 
 # Calculating the risk of dying while attempting to migrate across borders: 
@@ -10,12 +11,10 @@ ind = Dict(regions[i] => i for i in 1:length(regions))
 # And data on missing migrants in period 2014-2018 from IOM (http://missingmigrants.iom.int/). Retrieved on 10/3/2018.
 
 # Calculating migrant flows at FUND regions level 
-migflow_alldata = CSV.read(joinpath(@__DIR__, "../input_data/ac19.csv"))          # Use Abel and Cohen (2019)
-# From Abel and Cohen's paper, I choose Azose and Raftery's data for 1990-2015, on Guy Abel's suggestion (based a demographic accounting, pseudo-Bayesian method, which performs the best)
+migflow_alldata = CSV.File(joinpath(@__DIR__, "../input_data/ac19.csv")) |> DataFrame         # Use Abel and Cohen (2019)
 migflow = migflow_alldata[(migflow_alldata[:,:year0].==2010),[:orig, :dest, :da_pb_closed]]
 rename!(migflow, :da_pb_closed => :flow)
 
-iso3c_fundregion = CSV.read("../input_data/iso3c_fundregion.csv")
 rename!(iso3c_fundregion, :iso3c => :orig)
 migflow = join(migflow, iso3c_fundregion, on = :orig, kind = :inner)
 rename!(migflow, :fundregion => :originregion)
@@ -32,10 +31,7 @@ select!(migflow_reg, Not(:index))
 
 migflows = by(migflow_reg, [:origin, :destination], df -> df.flows ./ 5)  # Get yearly estimates
 rename!(migflows, :x1 => :flows)
-CSV.write("../input_data/migflows.csv", migflows)     
-
 flows = transpose(migflows[1:length(regions),:flows])
-# Error with vcat
 for i in 1:(length(regions) - 1)
     flows = vcat(flows, transpose(migflows[(i*length(regions)+1):(i*length(regions)+length(regions)),:flows]))
 end
@@ -143,9 +139,9 @@ for o in intersect(unique(death_journey[!,:origin_f]),regions)
         deaths[ind[o], ind["EEU"]] = deaths[ind[o], ind["WEU"]] * (1 / (1 + flows[ind[o], ind["WEU"]] / flows[ind[o], ind["EEU"]]))
         deaths[ind[o], ind["WEU"]] *= (1 / (1 + flows[ind[o], ind["EEU"]] / flows[ind[o], ind["WEU"]]))
     end
-    # Based on IOM data,migrants dead in Eastern Mediterranean were generally attempting to enter EEU
+    # Based on IOM data, migrants dead in Eastern Mediterranean were generally attempting to enter EEU
     deaths[ind[o], ind["EEU"]] += death_journey[findfirst([death_journey[i,:origin_f] == o && death_journey[i,:deathloc] == "Eastern Mediterranean" for i in 1:size(death_journey,1)]),:missing]
-    # Based on IOM data,migrants dead in Western and Central Mediterranean were generally attempting to enter WEU
+    # Based on IOM data, migrants dead in Western and Central Mediterranean were generally attempting to enter WEU
     deaths[ind[o], ind["WEU"]] += death_journey[findfirst([death_journey[i,:origin_f] == o && death_journey[i,:deathloc] == "Western + Central Mediterranean" for i in 1:size(death_journey,1)]),:missing]
 end
 

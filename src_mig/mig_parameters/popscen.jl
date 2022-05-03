@@ -5,7 +5,7 @@ using VegaLite, FileIO, VegaDatasets, FilePaths, Plots
 regions = ["USA", "CAN", "WEU", "JPK", "ANZ", "EEU", "FSU", "MDE", "CAM", "LAM", "SAS", "SEA", "CHI", "MAF", "SSA", "SIS"]
 ssps = ["SSP1","SSP2","SSP3","SSP4","SSP5"]
 
-sspall = CSV.read(joinpath(@__DIR__, "../input_data/sspall_10.csv"))
+sspall = CSV.File(joinpath(@__DIR__, "../input_data/sspall_10.csv")) |> DataFrame
 
 countries = unique(sspall[:,:region])
 
@@ -33,7 +33,7 @@ for i in 1:size(pop_ssp,1)
 end
 
 # For 1950-2015: use WPP2019. We use the Medium variant, the most commonly used. Unit: thousands
-pop_allvariants = CSV.read(joinpath(@__DIR__, "../input_data/WPP2019.csv"))
+pop_allvariants = CSV.File(joinpath(@__DIR__, "../input_data/WPP2019.csv")) |> DataFrame
 pop_hist = @from i in pop_allvariants begin
     @where i.Variant == "Medium" && i.Time < 2015
     @select {i.LocID, i.Location, i.Time, i.PopTotal}
@@ -85,7 +85,7 @@ pop_ssp = vcat(pop_ssp, pop_fut)
 sort!(pop_ssp, [:scen, :region, :period])
 
 # Convert to FUND regions
-isonum_fundregion = CSV.read("../input_data/isonum_fundregion.csv")
+isonum_fundregion = CSV.File("../input_data/isonum_fundregion.csv") |> DataFrame
 rename!(isonum_fundregion, :isonum => :region)
 pop_ssp = join(pop_ssp, isonum_fundregion, on = :region, kind = :left)
 pop_ssp_f = by(pop_ssp, [:period, :scen, :fundregion], d -> (pop_mig = sum(d.pop_mig), pop_nomig = sum(d.pop_nomig)))
@@ -106,20 +106,9 @@ for s in ssps
 end
 CSV.write(joinpath(@__DIR__, "../input_data/pop_ssp.csv"), pop_ssp)
 
-# Determine number of emigrants and immigrants at FUND region level
-mig = sspall[:,[:period,:scen,:country,:pop_mig,:inmigsum,:outmigsum]]
-iso3c_fundregion = CSV.read("../input_data/iso3c_fundregion.csv")
-rename!(iso3c_fundregion,:iso3c => :country)
-mig = join(mig,iso3c_fundregion,on=:country)
-mig_f = by(mig,[:period,:scen,:fundregion], d->(popmig=sum(d.pop_mig),inmig=sum(d.inmigsum),outmig=sum(d.outmigsum)))
-mig_f=join(mig_f,regionsdf,on=:fundregion)
-sort!(mig_f,[:scen,:period,:index])
-CSV.write(joinpath(@__DIR__, "../input_data/sspmig_fundregions.csv"), mig_f)
-
-
 # Plot FUND regions definition
 world110m = dataset("world-110m")
-isonum_fundregion = CSV.read(joinpath(@__DIR__,"../input_data/isonum_fundregion.csv"))
+isonum_fundregion = CSV.File(joinpath(@__DIR__,"../input_data/isonum_fundregion.csv")) |> DataFrame
 addterr = DataFrame(isonum=[10,-99],fundregion=["_other","_other"])         # Add codes for Antarctica and Somaliland
 @vlplot(width=800, height=600) + @vlplot(mark={:geoshape, stroke = :lightgray}, 
     data={values=world110m, format={type=:topojson, feature=:countries}}, 

@@ -5,7 +5,6 @@ regions = ["USA", "CAN", "WEU", "JPK", "ANZ", "EEU", "FSU", "MDE", "CAM", "LAM",
 ssps = ["SSP1","SSP2","SSP3","SSP4","SSP5"]     # We use ["SSP1-RCP1.9","SSP2-RCP4.5","SSP3-RCP7.0","SSP4-RCP6.0","SSP5-RCP8.5"]
 
 # Determine carbon price at FUND region level using SSP scenarios
-# !! The carbon price is the same for all regions !!
 
 # Reading data from SSP database (IIASA). Units: US$2005/t CO2
 cpdata = load(joinpath(@__DIR__, "../input_data/Carbonprice_SSPdatabase.xlsx"), "data!A1:P21") |> DataFrame
@@ -32,7 +31,7 @@ cpdata_s = stack(cpdata,3:12)
 rename!(cpdata_s, :variable=>:year, :value=>:cprice)
 cpdata_s[!,:year] = map(x->parse(Int,String(x)), cpdata_s[:,:year])
 
-# Linearizing from 10-year periods to yearly values. Note: a value for year x actually represents Carbon price at the beginning of the period                                                
+# Linearizing from 10-year periods to yearly values. Note: a value for year x represents Carbon price at the beginning of the period                                                
 cp_allyr = DataFrame(
     year = repeat(2010:2100, outer = length(ssps)*length(regions)),
     scen = repeat(ssps, inner = length(2010:2100)*length(regions)),

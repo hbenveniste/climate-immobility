@@ -31,7 +31,7 @@ for i in indmissing
 end    
 
 # Matching country codes.
-country_iso3c = CSV.read("../input_data/country_iso3c.csv")
+country_iso3c = CSV.File("../input_data/country_iso3c.csv") |> DataFrames
 matching = join(DataFrame(country = countries), country_iso3c, on = :country, kind = :left)
 misspelled = findall([ismissing(matching[i,:iso3c]) for i in 1:size(matching, 1)])
 for i in misspelled
@@ -67,7 +67,7 @@ rename!(remflow, :iso3c => :destination)
 phi = join(phi, remflow, on = [:source, :destination], kind = :left)
 
 # Transposing to FUND region * region level. We weight corridors by remittances flows.
-iso3c_fundregion = CSV.read("../input_data/iso3c_fundregion.csv")
+iso3c_fundregion = CSV.File("../input_data/iso3c_fundregion.csv") |> DataFrame
 phiweight = DataFrame(source = phi[:source], destination = phi[:destination], remittanceflows = phi[:remittanceflows], remcost = phi[:remcost])
 rename!(iso3c_fundregion, :iso3c => :source)
 phiweight = join(phiweight, iso3c_fundregion, on = :source, kind = :left)
@@ -97,7 +97,7 @@ phiweight = by(phiweight, [:sourceregion, :destinationregion], df -> sum(df[:w1]
 rename!(phiweight, :x1 => :phi)
 
 # Sorting the data
-rename!(phiweight, :destinationregion => :originregion, :sourceregion => :destinationregion)        # !!! Source is the sending region, i.e. the migrant destination
+rename!(phiweight, :destinationregion => :originregion, :sourceregion => :destinationregion)        # Source is the sending region, i.e. the migrant destination
 regions = ["USA", "CAN", "WEU", "JPK", "ANZ", "EEU", "FSU", "MDE", "CAM", "LAM", "SAS", "SEA", "CHI", "MAF", "SSA", "SIS"]
 regionsdf = DataFrame(originregion = repeat(regions, inner = length(regions)), indexo = repeat(1:16, inner = length(regions)), destinationregion = repeat(regions, outer = length(regions)), indexd = repeat(1:16, outer = length(regions)))
 phiweight = join(phiweight, regionsdf, on = [:originregion, :destinationregion], kind = :outer)
@@ -120,11 +120,3 @@ for r in regions
 end
 
 CSV.write("../data_mig/remcost.csv", phiweight; writeheader=false)
-
-# Stress test: make remittance costs 100%
-stresstestpar = DataFrame(
-    source = repeat(regions, inner = length(regions)), 
-    destination = repeat(regions, outer = length(regions)), 
-    remcost = ones(length(regions)*length(regions))
-)
-CSV.write(joinpath(@__DIR__,"../data_borderpolicy/remcost_stresstest.csv"), stresstestpar; writeheader=false)

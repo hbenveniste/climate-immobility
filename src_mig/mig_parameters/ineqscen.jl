@@ -5,7 +5,7 @@ using Plots, VegaLite, FileIO, VegaDatasets, FilePaths, ImageIO, ImageMagick
 regions = ["USA", "CAN", "WEU", "JPK", "ANZ", "EEU", "FSU", "MDE", "CAM", "LAM", "SAS", "SEA", "CHI", "MAF", "SSA", "SIS"]
 ssps = ["SSP1","SSP2","SSP3","SSP4","SSP5"]
 
-gini_edu = CSV.read(joinpath(@__DIR__, "../input_data/gini_edu.csv"), DataFrame)
+gini_edu = CSV.File(joinpath(@__DIR__, "../input_data/gini_edu.csv")) |> DataFrame
 
 countries = unique(gini_edu[.&(gini_edu[:,:period].==2100, map(x->!ismissing(x),gini_edu[:,:gini_nomig])),:country])
 
@@ -33,7 +33,7 @@ for i in 1:size(gini_ssp,1)
     end
 end
 
-# For 1950-2010: use data on within-country Gini from World Bank. Data only available sporadicly over time and across countries
+# For 1950-2010: use data on within-country Gini from World Bank. 
 # Interpolate Gini values for each country when missing data
 # Prior to first year of data available, assume constant Gini
 data_gini = load(joinpath(@__DIR__, "../input_data/Gini_WB_all.xlsx"), "Data!A1:BL265") |> DataFrame
@@ -74,7 +74,6 @@ gini_ssp = vcat(gini_past[(gini_past[:,:period].<2010),:],gini_ssp)
 sort!(gini_ssp, [:scen, :country, :period])
 
 # For 2100-2300: linear decline in gini growth rate reaching 0
-# We cap the Gini coefficient at 0.75
 gini2123 = DataFrame(
     period=repeat(2101:2300,outer=length(ssps)*length(countries)),
     scen=repeat(ssps,inner=length(2101:2300)*length(countries)),
@@ -111,9 +110,9 @@ gini_ssp = vcat(gini_ssp,gini3000)
 sort!(gini_ssp, [:scen,:country,:period])
 
 # Convert to FUND regions: use weighted average based on population 
-iso3c_isonum = CSV.read("../input_data/iso3c_isonum.csv", DataFrame)
+iso3c_isonum = CSV.File("../input_data/iso3c_isonum.csv") |> DataFrame
 gini_ssp = leftjoin(gini_ssp, rename(iso3c_isonum,:iso3c=>:country,:isonum=>:region), on = :country)
-pop_ssp = CSV.read(joinpath(@__DIR__, "../input_data/pop_ssp.csv"), DataFrame)
+pop_ssp = CSV.File(joinpath(@__DIR__, "../input_data/pop_ssp.csv")) |> DataFrame
 gini_ssp = innerjoin(gini_ssp, pop_ssp, on = [:period,:scen,:region])
 pop_ssp_f = combine(d -> (pop_mig_f = sum(d.pop_mig), pop_nomig_f = sum(d.pop_nomig)), groupby(gini_ssp, [:period, :scen, :fundregion]))
 gini_ssp = innerjoin(gini_ssp, pop_ssp_f, on=[:period,:scen,:fundregion])
@@ -132,4 +131,4 @@ for s in ssps
     CSV.write(joinpath(@__DIR__, string("../scen_ineq/ineq_mig_", s, ".csv")), gini_ssp_f[(gini_ssp_f[:,:scen].==s),[:period, :fundregion, :gini_mig]]; writeheader=false)
     CSV.write(joinpath(@__DIR__, string("../scen_ineq/ineq_nomig_", s, ".csv")), gini_ssp_f[(gini_ssp_f[:,:scen].==s),[:period, :fundregion, :gini_nomig]]; writeheader=false)
 end
-CSV.write(joinpath(@__DIR__, "../../Documents/WorkInProgress/migrations-Esteban-FUND/results/gini_ssp.csv"), gini_ssp)
+CSV.write(joinpath(@__DIR__, "../../../results/gini_ssp.csv"), gini_ssp)

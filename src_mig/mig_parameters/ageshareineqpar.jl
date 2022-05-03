@@ -1,10 +1,14 @@
 using CSV, DataFrames, Query, DelimitedFiles
 
 
+ssp = CSV.File(joinpath(@__DIR__, "../../../results/ssp.csv")) |> DataFrame
+
 regions = ["USA", "CAN", "WEU", "JPK", "ANZ", "EEU", "FSU", "MDE", "CAM", "LAM", "SAS", "SEA", "CHI", "MAF", "SSA", "SIS"]
+iso3c_isonum = CSV.File(joinpath(@__DIR__,"../input_data/iso3c_isonum.csv")) |> DataFrame
+iso3c_fundregion = CSV.File("../input_data/iso3c_fundregion.csv") |> DataFrame
+
 
 #################################################### Compute age of migrants at time of migration per income quintile, region, scenario ################################
-ssp = CSV.read(joinpath(@__DIR__, "../../Documents/data/SSP/ssp.csv"), DataFrame)
 sspageedu = combine(d->(pop=sum(d.pop),outmig=sum(d.outmig),inmig=sum(d.inmig)), groupby(ssp, [:age,:edu,:region,:period,:scen]))
 ageall = combine(d -> (pop_all=sum(d.:pop),outmig_all=sum(d.outmig),inmig_all=sum(d.inmig)), groupby(sspageedu, [:region,:age,:period,:scen]))
 sspageedu = innerjoin(sspageedu, ageall, on = [:region,:age,:period,:scen])
@@ -20,13 +24,12 @@ for name in [:pop,:inmig,:outmig]
 end
 
 sspageedu[!,:countrynum] = map(x->parse(Int,SubString(x,3)), sspageedu[:,:region])
-iso3c_isonum = CSV.read(joinpath(@__DIR__,"../input_data/iso3c_isonum.csv"), DataFrame)
 sspageedu = innerjoin(sspageedu, rename(iso3c_isonum, :iso3c=>:country, :isonum=>:countrynum), on = :countrynum)
 sort!(sspageedu, [:scen,:period,:country, :age, :edu])
 countries=unique(sspageedu[:,:country])
 
 # Calculate income level of migrants
-# We're assuming that education level is perfectly correlated with income level. We attribute each education level to the corresponding income quintile.
+# We assume that education level is perfectly correlated with income level. We attribute each education level to the corresponding income quintile.
 for name in [:q1,:q2,:q3,:q4,:q5]
     sspageedu[!,name] = zeros(size(sspageedu,1))
 end
@@ -73,7 +76,6 @@ end
 # We then assume that migrants' income profile per education level is the same as the general population
 age_cross = stack(sspageedu,17:21)
 rename!(age_cross, :variable=>:quintile, :value=>:pop_quintile)
-#sort!(age_cross, [:scen,:period,:country,:edu,:quintile,:age])
 age_cross[!,:outmig_quintile] = age_cross[:,:pop_quintile] ./ age_cross[:,:pop_share] .* age_cross[:,:outmig_share]
 age_cross[!,:inmig_quintile] = age_cross[:,:pop_quintile] ./ age_cross[:,:pop_share] .* age_cross[:,:inmig_share]
 for i in 1:size(age_cross,1) ; if age_cross[i,:pop_share] == 0.0 ; age_cross[i,:outmig_quintile] = 0.0 ; age_cross[i,:inmig_quintile] = 0.0 end end
@@ -90,7 +92,6 @@ age_quint[!,:inmig_ageshare] = age_quint[:,:inmig_agequint] ./ age_quint[:,:inmi
 for i in 1:size(age_quint,1) ; if age_quint[i,:inmig_allage] == 0.0 ; age_quint[i,:inmig_ageshare] = 0.0 end end
 
 # Convert to FUND region level: weight by migrant flows
-iso3c_fundregion = CSV.read("../input_data/iso3c_fundregion.csv", DataFrame)
 age_quint = leftjoin(age_quint, rename(iso3c_fundregion,:iso3c=>:country), on = :country)
 
 age_quint_regshareall = combine(d->sum(d.inmig_agequint), groupby(age_quint, [:scen,:period,:fundregion,:quintile]))

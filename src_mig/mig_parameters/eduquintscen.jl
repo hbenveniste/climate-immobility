@@ -6,8 +6,8 @@ using Statistics, Query, Distributions, StatsPlots
 regions = ["USA", "CAN", "WEU", "JPK", "ANZ", "EEU", "FSU", "MDE", "CAM", "LAM", "SAS", "SEA", "CHI", "MAF", "SSA", "SIS"]
 ssps = ["SSP1","SSP2","SSP3","SSP4","SSP5"]
 
-ssp_edu = CSV.read(joinpath(@__DIR__, "../input_data/ssp_edu.csv"))
-isonum_fundregion = CSV.read("../input_data/isonum_fundregion.csv")
+ssp_edu = CSV.File(joinpath(@__DIR__, "../input_data/ssp_edu.csv")) |> DataFrame
+isonum_fundregion = CSV.File("../input_data/isonum_fundregion.csv") |> DataFrame
 
 edu_level_all = sort(ssp_edu, [:period,:region,:edu])
 edu_level_all[!,:countrynum] = map(x->parse(Int,SubString(x,3)), edu_level_all[:,:region])
@@ -26,7 +26,7 @@ sort!(edu_level_f, [:scen,:period,:fundregion, :edu])
 
 
 ################################################### Calculate income level of migrants #################################################
-# We're assuming that education level is perfectly correlated with income level. We attribute each education level to the corresponding income quintile.
+# We assume that education level is perfectly correlated with income level. We attribute each education level to the corresponding income quintile.
 for name in [:q1,:q2,:q3,:q4,:q5]
     edu_level_f[!,name] = zeros(size(edu_level_f,1))
 end
@@ -92,7 +92,7 @@ eduquint_ssp = join(
     on=[:scen,:period,:dest]
 )
 
-# Strong assumption: the distribution of emigrants/immigrants among quintile levels is the same for all destinations/origins
+# We assume that the distribution of emigrants/immigrants among quintile levels is the same for all destinations/origins
 eduquint_ssp[!,:flow_quint_share] = eduquint_ssp[:,:outmig_quint] .* eduquint_ssp[:,:inmig_quint]
 
 
@@ -159,6 +159,6 @@ sort!(eduquint_ssp, [:scen, :period, :index_orig, :index_dest, :quint_or, :quint
 
 # Write for each SSP separately
 for s in ssps
-    CSV.write(joinpath(@__DIR__, string("../../Documents/WorkInProgress/migrations-Esteban-FUND/scen_ineq_3d/eduquint_", s, ".csv")), eduquint_ssp[(eduquint_ssp[:,:scen].==s),[:period, :orig, :dest, :quint_or, :quint_de, :flow_quint_share]]; writeheader=false)
+    CSV.write(joinpath(@__DIR__, string("../../../results/scen_ineq_3d/eduquint_", s, ".csv")), eduquint_ssp[(eduquint_ssp[:,:scen].==s),[:period, :orig, :dest, :quint_or, :quint_de, :flow_quint_share]]; writeheader=false)
 end
-CSV.write(joinpath(@__DIR__, "../../Documents/WorkInProgress/migrations-Esteban-FUND/results/eduquint_ssp.csv"), eduquint_ssp)
+CSV.write(joinpath(@__DIR__, "../../../results/eduquint_ssp.csv"), eduquint_ssp)

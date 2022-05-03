@@ -4,7 +4,7 @@ using CSV, DataFrames, Statistics, DelimitedFiles, FileIO
 regions = ["USA", "CAN", "WEU", "JPK", "ANZ", "EEU", "FSU", "MDE", "CAM", "LAM", "SAS", "SEA", "CHI", "MAF", "SSA", "SIS"]
 ssps = ["SSP1","SSP2","SSP3","SSP4","SSP5"]
 
-sspall = CSV.read(joinpath(@__DIR__, "../input_data/sspall_10.csv"))
+sspall = CSV.File(joinpath(@__DIR__, "../input_data/sspall_10.csv")) |> DataFrame
 
 countries = unique(sspall[:,:country])
 
@@ -18,7 +18,7 @@ gdp_allyr = DataFrame(
     scen = repeat(ssps, inner = length(2015:2100)*length(countries)),
     country = repeat(countries, inner = length(2015:2100), outer = length(ssps))
 )
-gdp_ssp = join(gdp_ssp, gdp_allyr, on = [:period, :scen, :country], kind = :outer)
+gdp_ssp = outerjoin(gdp_ssp, gdp_allyr, on = [:period, :scen, :country])
 sort!(gdp_ssp, [:scen, :country, :period])
 for i in 1:size(gdp_ssp,1)
     if mod(gdp_ssp[i,:period], 5) != 0
@@ -52,18 +52,18 @@ g0 = DataFrame(
 gdpgrowth = vcat(gdpgrowth, g0)
 sort!(gdpgrowth, [:year, :country])
 
-scenpgrowth = CSV.read(joinpath(@__DIR__, "../input_data/scenpgrowth.csv"), header=false, datarow=2, delim = ",")
+scenpgrowth = CSV.File(joinpath(@__DIR__, "../input_data/scenpgrowth.csv"), header=false, datarow=2, delim = ",") |> DataFrame
 rename!(scenpgrowth, :Column1 => :year, :Column2 => :fundregion, :Column3 => :pgrowth)
-scenypcgrowth = CSV.read(joinpath(@__DIR__, "../input_data/scenypcgrowth.csv"), header=false, datarow=2, delim = ",")
+scenypcgrowth = CSV.File(joinpath(@__DIR__, "../input_data/scenypcgrowth.csv"), header=false, datarow=2, delim = ",") |> DataFrame
 rename!(scenypcgrowth, :Column1 => :year, :Column2 => :fundregion, :Column3 => :ypcgrowth)
-scengdpgrowth = join(scenpgrowth, scenypcgrowth, on = [:year, :fundregion])
+scengdpgrowth = innerjoin(scenpgrowth, scenypcgrowth, on = [:year, :fundregion])
 scengdpgrowth[!,:gdpgrowth_f] = ((1 .+ scengdpgrowth[:,:ypcgrowth] ./ 100) .* (1 .+ scengdpgrowth[:,:pgrowth] ./ 100) .- 1) .* 100
 
-iso3c_fundregion = CSV.read("../input_data/iso3c_fundregion.csv")
+iso3c_fundregion = CSV.File("../input_data/iso3c_fundregion.csv") |> DataFrame
 rename!(iso3c_fundregion, :iso3c => :country)
-gdpgrowth = join(gdpgrowth, iso3c_fundregion, on = :country)
+gdpgrowth = innerjoin(gdpgrowth, iso3c_fundregion, on = :country)
 
-gdpgrowth = join(gdpgrowth, scengdpgrowth[(scengdpgrowth[:,:year].<2019),[:year,:fundregion,:gdpgrowth_f]], on = [:year, :fundregion])
+gdpgrowth = innerjoin(gdpgrowth, scengdpgrowth[(scengdpgrowth[:,:year].<2019),[:year,:fundregion,:gdpgrowth_f]], on = [:year, :fundregion])
 
 for s in ssps
     for c in intersect(countries, unique(gdpgrowth[:,:country]))        # only Taiwan has no growth data
@@ -82,15 +82,15 @@ end
 sort!(gdp_ssp, [:scen, :country, :period])
 
 # For 2100-2300: linear decline in GDP per capita growth rate reaching 0 (as done in IWG SCC, source by Kevin Rennert RFF)
-pop_ssp = CSV.read(joinpath(@__DIR__, "../input_data/pop_ssp.csv"))
-iso3c_isonum = CSV.read("../input_data/iso3c_isonum.csv")
-pop_ssp = join(pop_ssp, rename(iso3c_isonum, :iso3c => :country, :isonum => :region), on = :region)
+pop_ssp = CSV.File(joinpath(@__DIR__, "../input_data/pop_ssp.csv")) |> DataFrame
+iso3c_isonum = CSV.File("../input_data/iso3c_isonum.csv") |> DataFrame
+pop_ssp = innerjoin(pop_ssp, rename(iso3c_isonum, :iso3c => :country, :isonum => :region), on = :region)
 ps2300 = @from i in pop_ssp begin
     @where i.period <= 2300 && i.country in countries
     @select {i.period, i.scen, i.country, i.pop_mig, i.pop_nomig, i.fundregion}
     @collect DataFrame
 end
-gdp_ssp = join(gdp_ssp, ps2300, on = [:scen, :period, :country], kind = :right)
+gdp_ssp = rightjoin(gdp_ssp, ps2300, on = [:scen, :period, :country])
 sort!(gdp_ssp, [:scen,:country,:period])
 for s in ssps
     for c in countries
@@ -119,8 +119,8 @@ ps3000 = @from i in pop_ssp begin
     @select {i.period, i.scen, i.country, i.pop_mig, i.pop_nomig, i.fundregion}
     @collect DataFrame
 end
-ps3000 = join(ps3000, ypc2300, on = [:scen,:country], kind = :left)
-gdp_ssp = join(gdp_ssp, ps3000, on = [:scen, :period, :country, :fundregion, :pop_mig, :pop_nomig,:ypc_mig,:ypc_nomig], kind = :outer)
+ps3000 = leftjoin(ps3000, ypc2300, on = [:scen,:country])
+gdp_ssp = outerjoin(gdp_ssp, ps3000, on = [:scen, :period, :country, :fundregion, :pop_mig, :pop_nomig,:ypc_mig,:ypc_nomig])
 sort!(gdp_ssp, [:scen,:country,:period])
 
 for i in 1:size(gdp_ssp,1)
@@ -130,26 +130,13 @@ for i in 1:size(gdp_ssp,1)
     end
 end
 
-# !! This is keeping GDP constant, not GDP per capita !!
-#sort!(gdp_ssp, [:period, :scen, :country])
-#ind2300 = findfirst(gdp_ssp[:,:period].==2300)
-#gdp_fut = DataFrame(
-    #period = repeat(2301:3000,inner=size(gdp_ssp[ind2300:end,:scen],1)),
-    #scen = repeat(gdp_ssp[ind2300:end,:scen],outer=length(2301:3000)),
-    #country = repeat(gdp_ssp[ind2300:end,:country],outer=length(2301:3000)),
-    #gdp_mig = repeat(gdp_ssp[ind2300:end,:gdp_mig],outer=length(2301:3000)),
-    #gdp_nomig = repeat(gdp_ssp[ind2300:end,:gdp_nomig],outer=length(2301:3000))
-#)
-#gdp_ssp = vcat(gdp_ssp, gdp_fut)
-#sort!(gdp_ssp, [:scen, :country, :period])
-
 # Convert to FUND regions
-gdp_ssp = join(gdp_ssp, iso3c_fundregion, on = :country, kind = :left)
+gdp_ssp = leftjoin(gdp_ssp, iso3c_fundregion, on = :country)
 gdp_ssp_f = by(gdp_ssp, [:period, :scen, :fundregion], d -> (gdp_mig = sum(skipmissing(d.gdp_mig)), gdp_nomig = sum(skipmissing(d.gdp_nomig))))
 
 # Sorting the data
 regionsdf = DataFrame(fundregion = regions, index = 1:16)
-gdp_ssp_f = join(gdp_ssp_f, regionsdf, on = :fundregion)
+gdp_ssp_f = innerjoin(gdp_ssp_f, regionsdf, on = :fundregion)
 sort!(gdp_ssp_f, [:scen, :period, :index])
 
 # Write for each SSP and mig/nomig separately
@@ -157,4 +144,4 @@ for s in ssps
     CSV.write(joinpath(@__DIR__, string("../scen/gdp_mig_", s, ".csv")), gdp_ssp_f[(gdp_ssp_f[:,:scen].==s),[:period, :fundregion, :gdp_mig]]; writeheader=false)
     CSV.write(joinpath(@__DIR__, string("../scen/gdp_nomig_", s, ".csv")), gdp_ssp_f[(gdp_ssp_f[:,:scen].==s),[:period, :fundregion, :gdp_nomig]]; writeheader=false)
 end
-CSV.write(joinpath(@__DIR__, "../../Documents/WorkInProgress/migrations-Esteban-FUND/results/gdp_ssp.csv"), gdp_ssp)
+CSV.write(joinpath(@__DIR__, "../../../results/gdp_ssp.csv"), gdp_ssp)
