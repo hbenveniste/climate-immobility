@@ -9,6 +9,10 @@ include("fund_ssp_ineq.jl")
 
 ssps = ["SSP1","SSP2","SSP3","SSP4","SSP5"]
 regions = ["USA", "CAN", "WEU", "JPK", "ANZ", "EEU", "FSU", "MDE", "CAM", "LAM", "SAS", "SEA", "CHI", "MAF", "SSA", "SIS"]
+regions_fullname = DataFrame(
+    fundregion=regions,
+    regionname = ["United States","Canada","Western Europe", "Japan & South Korea","Australia & New Zealand","Central & Eastern Europe","Former Soviet Union", "Middle East", "Central America", "South America","South Asia","Southeast Asia","China plus", "North Africa","Sub-Saharan Africa","Small Island States"]
+)
 years = 1951:2100
 
 world110m = dataset("world-110m")
@@ -103,7 +107,6 @@ dam_migNICEFUND = vcat(
     collect(Iterators.flatten(m_nice_ssp5_nomig[:addimpact,:loss][MimiFUND.getindexfromyear(1951):MimiFUND.getindexfromyear(2100),:]))
 )
 damages[:,:damages_migNICEFUND] = dam_migNICEFUND
-
 dam_migNICEFUND_xi0 = vcat(
     collect(Iterators.flatten(m_nice_ssp1_nomig_xi0[:addimpact,:loss][MimiFUND.getindexfromyear(1951):MimiFUND.getindexfromyear(2100),:])),
     collect(Iterators.flatten(m_nice_ssp2_nomig_xi0[:addimpact,:loss][MimiFUND.getindexfromyear(1951):MimiFUND.getindexfromyear(2100),:])),
@@ -120,6 +123,14 @@ dam_migNICEFUND_xim1 = vcat(
     collect(Iterators.flatten(m_nice_ssp5_nomig_xim1[:addimpact,:loss][MimiFUND.getindexfromyear(1951):MimiFUND.getindexfromyear(2100),:]))
 )
 damages[:,:damages_migNICEFUND_xim1] = dam_migNICEFUND_xim1
+gdp_migNICEFUND = vcat(
+    collect(Iterators.flatten(m_nice_ssp1_nomig[:socioeconomic,:income][MimiFUND.getindexfromyear(1951):MimiFUND.getindexfromyear(2100),:])),
+    collect(Iterators.flatten(m_nice_ssp2_nomig[:socioeconomic,:income][MimiFUND.getindexfromyear(1951):MimiFUND.getindexfromyear(2100),:])),
+    collect(Iterators.flatten(m_nice_ssp3_nomig[:socioeconomic,:income][MimiFUND.getindexfromyear(1951):MimiFUND.getindexfromyear(2100),:])),
+    collect(Iterators.flatten(m_nice_ssp4_nomig[:socioeconomic,:income][MimiFUND.getindexfromyear(1951):MimiFUND.getindexfromyear(2100),:])),
+    collect(Iterators.flatten(m_nice_ssp5_nomig[:socioeconomic,:income][MimiFUND.getindexfromyear(1951):MimiFUND.getindexfromyear(2100),:]))
+)
+damages[:,:gdp_migNICEFUND] = gdp_migNICEFUND
 gdp_migNICEFUND_xi0 = vcat(
     collect(Iterators.flatten(m_nice_ssp1_nomig_xi0[:socioeconomic,:income][MimiFUND.getindexfromyear(1951):MimiFUND.getindexfromyear(2100),:])),
     collect(Iterators.flatten(m_nice_ssp2_nomig_xi0[:socioeconomic,:income][MimiFUND.getindexfromyear(1951):MimiFUND.getindexfromyear(2100),:])),
@@ -137,6 +148,7 @@ gdp_migNICEFUND_xim1 = vcat(
 )
 damages[:,:gdp_migNICEFUND_xim1] = gdp_migNICEFUND_xim1
 
+damages[:,:damgdp_migNICEFUND] = damages[:,:damages_migNICEFUND] ./ (damages[:,:gdp_migNICEFUND] .* 10^9)
 damages[:,:damgdp_migNICEFUND_xi0] = damages[:,:damages_migNICEFUND_xi0] ./ (damages[:,:gdp_migNICEFUND_xi0] .* 10^9)
 damages[:,:damgdp_migNICEFUND_xim1] = damages[:,:damages_migNICEFUND_xim1] ./ (damages[:,:gdp_migNICEFUND_xim1] .* 10^9)
 rename!(damages, :damages_migNICEFUND => :dam_damprop, :damages_migNICEFUND_xi0 => :dam_damindep, :damages_migNICEFUND_xim1 => :dam_daminvprop)

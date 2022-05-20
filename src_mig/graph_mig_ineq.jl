@@ -148,6 +148,8 @@ migration_quint[:,:leave_quint_xim1] = leave_quint_xim1
 # Look at emigrants without residual from gravity (residual same for all SSP, xi, CC or not)
 migration_quint[!,:leave_quint_gravres] = repeat(collect(Iterators.flatten(sum(m_nice_ssp2_nomig[:migration,:gravres_qi],dims=[2,4])[:,1,:,1])),inner=length(1951:2100),outer=length(ssps))
 
+migration_quint_p = migration_quint[(map(x->mod(x,10)==0,migration_quint[:,:year])),:]
+
 
 ###################################### Plot number of people leaving and entering a given place and quintile ###########################
 leave_quint = stack(

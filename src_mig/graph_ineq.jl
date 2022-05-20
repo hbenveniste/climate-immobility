@@ -10,8 +10,6 @@ ssps = ["SSP1","SSP2","SSP3","SSP4","SSP5"]
 regions = ["USA", "CAN", "WEU", "JPK", "ANZ", "EEU", "FSU", "MDE", "CAM", "LAM", "SAS", "SEA", "CHI", "MAF", "SSA", "SIS"]
 years = 1950:2100
 
-ssp_gini = CSV.read(joinpath(@__DIR__, "../../yssp/data/gini_rao/ssp_ginis.csv"),DataFrame)
-
 regions_fullname = DataFrame(
     fundregion=regions,
     regionname = ["United States","Canada","Western Europe", "Japan & South Korea","Australia & New Zealand","Central & Eastern Europe","Former Soviet Union", "Middle East", "Central America", "South America","South Asia","Southeast Asia","China plus", "North Africa","Sub-Saharan Africa","Small Island States"]

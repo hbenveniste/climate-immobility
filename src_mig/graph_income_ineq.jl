@@ -196,6 +196,30 @@ end
 
 ########################################## Compare effect of remittances vs damages on income ####################################3
 # Remittances received
+gdp_quint_xi1 = vcat(
+    collect(Iterators.flatten(m_nice_ssp1_nomig[:migration,:income][MimiFUND.getindexfromyear(1951):MimiFUND.getindexfromyear(2100),:,:])),
+    collect(Iterators.flatten(m_nice_ssp2_nomig[:migration,:income][MimiFUND.getindexfromyear(1951):MimiFUND.getindexfromyear(2100),:,:])),
+    collect(Iterators.flatten(m_nice_ssp3_nomig[:migration,:income][MimiFUND.getindexfromyear(1951):MimiFUND.getindexfromyear(2100),:,:])),
+    collect(Iterators.flatten(m_nice_ssp4_nomig[:migration,:income][MimiFUND.getindexfromyear(1951):MimiFUND.getindexfromyear(2100),:,:])),
+    collect(Iterators.flatten(m_nice_ssp5_nomig[:migration,:income][MimiFUND.getindexfromyear(1951):MimiFUND.getindexfromyear(2100),:,:]))
+)
+income_quint[:,:gdp_quint_xi1] = gdp_quint_xi1
+gdp_quint_xi0 = vcat(
+    collect(Iterators.flatten(m_nice_ssp1_nomig_xi0[:migration,:income][MimiFUND.getindexfromyear(1951):MimiFUND.getindexfromyear(2100),:,:])),
+    collect(Iterators.flatten(m_nice_ssp2_nomig_xi0[:migration,:income][MimiFUND.getindexfromyear(1951):MimiFUND.getindexfromyear(2100),:,:])),
+    collect(Iterators.flatten(m_nice_ssp3_nomig_xi0[:migration,:income][MimiFUND.getindexfromyear(1951):MimiFUND.getindexfromyear(2100),:,:])),
+    collect(Iterators.flatten(m_nice_ssp4_nomig_xi0[:migration,:income][MimiFUND.getindexfromyear(1951):MimiFUND.getindexfromyear(2100),:,:])),
+    collect(Iterators.flatten(m_nice_ssp5_nomig_xi0[:migration,:income][MimiFUND.getindexfromyear(1951):MimiFUND.getindexfromyear(2100),:,:]))
+)
+income_quint[:,:gdp_quint_xi0] = gdp_quint_xi0
+gdp_quint_xim1 = vcat(
+    collect(Iterators.flatten(m_nice_ssp1_nomig_xim1[:migration,:income][MimiFUND.getindexfromyear(1951):MimiFUND.getindexfromyear(2100),:,:])),
+    collect(Iterators.flatten(m_nice_ssp2_nomig_xim1[:migration,:income][MimiFUND.getindexfromyear(1951):MimiFUND.getindexfromyear(2100),:,:])),
+    collect(Iterators.flatten(m_nice_ssp3_nomig_xim1[:migration,:income][MimiFUND.getindexfromyear(1951):MimiFUND.getindexfromyear(2100),:,:])),
+    collect(Iterators.flatten(m_nice_ssp4_nomig_xim1[:migration,:income][MimiFUND.getindexfromyear(1951):MimiFUND.getindexfromyear(2100),:,:])),
+    collect(Iterators.flatten(m_nice_ssp5_nomig_xim1[:migration,:income][MimiFUND.getindexfromyear(1951):MimiFUND.getindexfromyear(2100),:,:]))
+)
+income_quint[:,:gdp_quint_xim1] = gdp_quint_xim1
 income_quint[:,:remgdp_quint_damprop] = income_quint[:,:receive_quint_xi1] ./ income_quint[:,:gdp_quint_xi1]
 income_quint[:,:remgdp_quint_damindep] = income_quint[:,:receive_quint_xi0] ./ income_quint[:,:gdp_quint_xi0]
 income_quint[:,:remgdp_quint_daminvprop] = income_quint[:,:receive_quint_xim1] ./ income_quint[:,:gdp_quint_xim1]
