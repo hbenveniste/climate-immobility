@@ -1,1 +1,1 @@
-Data and code used in the following journal article: H. Benveniste, M. Oppenheimer, M. Fleurbaey (2022). “Climate change increases resource-constrained international immobility." Nature Climate Change. doi: .
+Data and code used in the following journal article: H. Benveniste, M. Oppenheimer, M. Fleurbaey (2022). “Climate change increases resource-constrained international immobility." Nature Climate Change, 12, 634-341. doi: 10.1038/s41558-022-01401-w.
