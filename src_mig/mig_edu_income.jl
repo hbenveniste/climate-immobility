@@ -17,11 +17,11 @@ regions_fullname = DataFrame(
 
 
 ################## Prepare population data: original SSP and no-migration version ####################
-ssp1 = CSV.File(joinpath(@__DIR__, "../../../../YSSP_IIASA/data/pop_samirkc/SSP1.csv")) |> DataFrame
-ssp2 = CSV.File(joinpath(@__DIR__, "../../../../YSSP_IIASA/data/pop_samirkc/SSP2.csv")) |> DataFrame
-ssp3 = CSV.File(joinpath(@__DIR__, "../../../../YSSP_IIASA/data/pop_samirkc/SSP3.csv")) |> DataFrame
-ssp4 = CSV.File(joinpath(@__DIR__, "../../../../YSSP_IIASA/data/pop_samirkc/SSP4.csv")) |> DataFrame
-ssp5 = CSV.File(joinpath(@__DIR__, "../../../../YSSP_IIASA/data/pop_samirkc/SSP5.csv")) |> DataFrame
+ssp1 = CSV.File(joinpath(@__DIR__, "../../../../YSSP-IIASA/data/pop_samirkc/SSP1.csv")) |> DataFrame
+ssp2 = CSV.File(joinpath(@__DIR__, "../../../../YSSP-IIASA/data/pop_samirkc/SSP2.csv")) |> DataFrame
+ssp3 = CSV.File(joinpath(@__DIR__, "../../../../YSSP-IIASA/data/pop_samirkc/SSP3.csv")) |> DataFrame
+ssp4 = CSV.File(joinpath(@__DIR__, "../../../../YSSP-IIASA/data/pop_samirkc/SSP4.csv")) |> DataFrame
+ssp5 = CSV.File(joinpath(@__DIR__, "../../../../YSSP-IIASA/data/pop_samirkc/SSP5.csv")) |> DataFrame
 
 select!(ssp1, Not(:Column1))
 select!(ssp2, Not(:Column1))
@@ -32,8 +32,8 @@ select!(ssp5, Not([:Column1, :pattern, :nSx, :pop1, :deaths, :pop2, :pop3, :asfr
 ssp4[!,:scen] = repeat(["SSP4"], size(ssp4,1))
 ssp5[!,:scen] = repeat(["SSP5"], size(ssp5,1))
 
-permutecols!(ssp4, [2,1,3,4,5,6,7,8,9])
-permutecols!(ssp5, [2,1,3,4,5,6,7,8,9])
+select!(ssp4, :sex,:age,Not([:sex,:age]))
+select!(ssp5, :sex,:age,Not([:sex,:age]))
 
 # Join ssp datasets
 ssp = vcat(ssp1, ssp2, ssp3, ssp4, ssp5)

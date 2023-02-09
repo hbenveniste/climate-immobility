@@ -31,7 +31,7 @@ pop2015weight[!,:weight] = [pop2015weight[i,:pop] / weight[!,:x1][findfirst(weig
 # Data on SSP scenarios life expectancy is available from Wittgenstein Centre for 1950-2100. 
 # We assume constant life expectancy after 2100
 
-lifeexp = CSV.File(joinpath(@__DIR__,"../input_data/lifeexp.csv");header=9) |> DataFrame
+lifeexp = CSV.File(joinpath(@__DIR__,"../../input_data/lifeexp.csv");header=9) |> DataFrame
 select!(lifeexp, Not(:Area))
 lifeexp[!,:Period] = map( x -> parse(Int, SubString(x, 1:4)), lifeexp[!,:Period])
 lifeexp = by(lifeexp, [:Scenario, :Period, :ISOCode], d -> mean(d.Years))               # Compute life expectancy for overall population as average between male and female
