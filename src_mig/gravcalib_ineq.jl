@@ -317,16 +317,33 @@ regtable(regsdt1,regsdt2,regsdt3; renderSettings = asciiOutput(),regression_stat
 # Reading GDP per capita at country level; data for 2017 from World Bank(WDI), in current USD. 
 ypc_2017 = readdlm(joinpath(@__DIR__,"../input_data/ypc2017.csv"), ';', comments = true)
 ypc2017 = DataFrame(iso3c = ypc_2017[2:end,1], ypc = ypc_2017[2:end,2])
-for i in 1:size(ypc2017, 1) ; if ypc2017[:ypc][i] == ".." ; ypc2017[:ypc][i] = missing end end      # replacing missing values by missing
 
-data_17 = join(ypc2017, iso3c_isonum, on=:iso3c)
+iso3c_isonum = CSV.read(joinpath(@__DIR__, "../input_data/iso3c_isonum.csv"), DataFrame) 
+data_17 = innerjoin(ypc2017, iso3c_isonum, on=:iso3c)
 dropmissing!(data_17)       # remove rows with missing values in ypc
 
-data_17 = join(data_17, rename(pop_allvariants[.&(pop_allvariants[:,:Variant].=="Medium", pop_allvariants[:,:Time].==2017),[:LocID,:PopTotal]], :LocID=>:isonum), on=:isonum)
+pop_allvariants = CSV.read(joinpath(@__DIR__, "../input_data/WPP2019.csv"), DataFrame)
+# We use the Medium variant, the most commonly used. Unit: thousands
+pop = @from i in pop_allvariants begin
+    @where i.Variant == "Medium" && i.Time < 2016 
+    @select {i.LocID, i.Location, i.Time, i.PopTotal}
+    @collect DataFrame
+end
+data_17 = innerjoin(data_17, rename(pop_allvariants[.&(pop_allvariants[:,:Variant].=="Medium", pop_allvariants[:,:Time].==2017),[:LocID,:PopTotal]], :LocID=>:isonum), on=:isonum)
 data_17[!,:PopTotal] .*= 1000        # pop is in thousands
 
-gravity_17 = join(rename(data_17, :iso3c => :orig, :ypc=>:ypc_orig,:PopTotal=>:pop_orig)[:,Not(:isonum)], remittances, on=:orig)
-gravity_17 = join(rename(data_17,:iso3c=>:dest,:ypc=>:ypc_dest,:PopTotal=>:pop_dest)[:,Not(:isonum)], gravity_17, on=:dest)
+rho = CSV.read(joinpath(@__DIR__, "../input_data/rho.csv"), DataFrame)
+phi = CSV.read(joinpath(@__DIR__,"../input_data/phi.csv"), DataFrame)
+remittances = leftjoin(rho, phi, on = [:origin, :destination])
+# For corridors with no cost data, I assume that the cost of sending remittances is the mean of all available corridors
+for i in 1:size(remittances,1)
+    if ismissing(remittances[i,:phi])
+        remittances[i,:phi] = (remittances[i,:origin] == remittances[i,:destination] ? 0.0 : mean(phi[!,:phi]))
+    end
+end
+rename!(remittances, :origin => :orig, :destination => :dest, :rho => :remshare, :phi => :remcost)
+gravity_17 = innerjoin(rename(data_17, :iso3c => :orig, :ypc=>:ypc_orig,:PopTotal=>:pop_orig)[:,Not(:isonum)], remittances, on=:orig)
+gravity_17 = innerjoin(rename(data_17,:iso3c=>:dest,:ypc=>:ypc_dest,:PopTotal=>:pop_dest)[:,Not(:isonum)], gravity_17, on=:dest)
 gravity_17[!,:ypc_ratio] = gravity_17[!,:ypc_dest] ./ gravity_17[!,:ypc_orig]
 
 # log transformation
@@ -335,13 +352,11 @@ for name in [:pop_orig, :pop_dest, :ypc_orig, :ypc_dest, :ypc_ratio]
 end
 gravity_17[!,:log_remshare] = [log(gravity_17[i,:remshare]) for i in 1:size(gravity_17, 1)]
 
-# Create country fixed effects
-gravity_17.OrigCategorical = categorical(gravity_17.orig)
-gravity_17.DestCategorical = categorical(gravity_17.dest)
-
-r17anex1 = reg(gravity_17, @formula(remshare ~ ypc_orig + ypc_dest + remcost), Vcov.cluster(:OrigCategorical, :DestCategorical), save=true)
-r17anex2 = reg(gravity_17, @formula(remshare ~ ypc_dest + ypc_ratio + remcost), Vcov.cluster(:OrigCategorical, :DestCategorical), save=true)
-r17anex5 = reg(gravity_17[(gravity_17[:,:remshare] .!= 0.0),:], @formula(log_remshare ~ ypc_orig + ypc_dest + remcost), Vcov.cluster(:OrigCategorical, :DestCategorical), save=true)
-r17anex6 = reg(gravity_17[(gravity_17[:,:remshare] .!= 0.0),:], @formula(log_remshare ~ ypc_dest + ypc_ratio + remcost), Vcov.cluster(:OrigCategorical, :DestCategorical), save=true)
+r17anex1 = reg(gravity_17, @formula(remshare ~ ypc_orig + ypc_dest + remcost), Vcov.cluster(:orig, :dest), save=true)
+r17anex2 = reg(gravity_17, @formula(remshare ~ ypc_dest + ypc_ratio + remcost), Vcov.cluster(:orig, :dest), save=true)
+r17anex5 = reg(gravity_17[(gravity_17[:,:remshare] .!= 0.0),:], @formula(log_remshare ~ ypc_orig + ypc_dest + remcost), Vcov.cluster(:orig, :dest), save=true)
+r17anex6 = reg(gravity_17[(gravity_17[:,:remshare] .!= 0.0),:], @formula(log_remshare ~ ypc_dest + ypc_ratio + remcost), Vcov.cluster(:orig, :dest), save=true)
 
 regtable(r17anex1, r17anex2, r17anex5, r17anex6; renderSettings = latexOutput(),regression_statistics=[:nobs, :r2])     
+
+gravity_17[!,:residual_ratio] = residuals(r17anex6, gravity_17)
