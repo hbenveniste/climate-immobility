@@ -1,4 +1,4 @@
-using CSV, DataFrames, DelimitedFiles, ExcelFiles
+using CSV, DataFrames, DelimitedFiles, ExcelFiles, XLSX
 using Plots, VegaLite, FileIO, VegaDatasets, FilePaths, ImageIO, ImageMagick
 using Statistics, Query, Distributions, StatsPlots
 using FixedEffectModels, RegressionTables
@@ -10,8 +10,11 @@ gravity_endo = CSV.File(joinpath(@__DIR__,"../results/gravity/gravity_endo.csv")
 gravity_endo_abel = CSV.File(joinpath(@__DIR__,"../results/gravity/gravity_endo_abel.csv")) |> DataFrame
 
 # For 1950-2010: use data on within-country Gini from World Bank. Data only available sporadicly over time and across countries
-data_gini = load(joinpath(@__DIR__, "../input_data/Gini_WB_all.xlsx"), "Data!A1:BL265") |> DataFrame
-gini_hist = stack(data_gini[:,4:end], 2:61)
+data_gini = XLSX.readdata(joinpath(@__DIR__, "../input_data/Gini_WB_all.xlsx"), "Data!A1:BL265") 
+datagini = DataFrame(data_gini, :auto)
+rename!(datagini, Symbol.(Vector(datagini[1,:])))
+deleteat!(datagini,1)
+gini_hist = stack(datagini[:,4:end], 2:61)
 rename!(gini_hist, Symbol("Country Code")=>:country, :variable => :year, :value=>:gini)
 gini_hist[!,:year] = map(x->parse(Int,SubString(String(x), 1:4)), gini_hist[:,:year])
 gini_hist[!,:gini] = [typeof(gini_hist[i,:gini]) == Float64 ? gini_hist[i,:gini] : missing for i in 1:size(gini_hist,1)]

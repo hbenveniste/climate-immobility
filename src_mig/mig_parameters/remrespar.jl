@@ -16,10 +16,10 @@ data_resweight = gravity_17[:,union(1:6,13)]
 data_resweight[!,:gdp_orig] = data_resweight[:,:ypc_orig] .* data_resweight[:,:pop_orig]
 data_resweight[!,:gdp_dest] = data_resweight[:,:ypc_dest] .* data_resweight[:,:pop_dest]
 
-data_resweight = join(data_resweight, migstock[:,3:5], on = [:orig,:dest])
+data_resweight = innerjoin(data_resweight, migstock[:,3:5], on = [:orig,:dest])
 
-data_resweight = join(data_resweight, rename(iso3c_fundregion, :iso3c=>:orig,:fundregion=>:originregion),on=:orig)
-data_resweight = join(data_resweight, rename(iso3c_fundregion, :iso3c=>:dest,:fundregion=>:destinationregion),on=:dest)
+data_resweight = innerjoin(data_resweight, rename(iso3c_fundregion, :iso3c=>:orig,:fundregion=>:originregion),on=:orig)
+data_resweight = innerjoin(data_resweight, rename(iso3c_fundregion, :iso3c=>:dest,:fundregion=>:destinationregion),on=:dest)
 
 # Calculate appropriate weights for exp(residuals)
 data_resweight_calc = by(data_resweight, [:originregion,:destinationregion], d -> (pop_orig_reg = sum(d.pop_orig),gdp_orig_reg=sum(d.gdp_orig),pop_dest_reg = sum(d.pop_dest),gdp_dest_reg=sum(d.gdp_dest),migstock_reg=sum(d.migrantstocks)))
