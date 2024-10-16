@@ -4,7 +4,6 @@ using Statistics, DataFrames, Query, Distributions
 using MimiFUND
 
 include("main_mig_nice.jl")
-include("fund_ssp_ineq.jl")
 
 
 ssps = ["SSP1","SSP2","SSP3","SSP4","SSP5"]
@@ -20,13 +19,6 @@ m_nice_ssp2_nomig = getmigrationnicemodel(scen="SSP2",migyesno="nomig",xi=1.0,om
 m_nice_ssp3_nomig = getmigrationnicemodel(scen="SSP3",migyesno="nomig",xi=1.0,omega=1.0)
 m_nice_ssp4_nomig = getmigrationnicemodel(scen="SSP4",migyesno="nomig",xi=1.0,omega=1.0)
 m_nice_ssp5_nomig = getmigrationnicemodel(scen="SSP5",migyesno="nomig",xi=1.0,omega=1.0)
-
-m_fundnicessp1 = getsspnicemodel(scen="SSP1",migyesno="mig",xi=1.0,omega=1.0)
-m_fundnicessp2 = getsspnicemodel(scen="SSP2",migyesno="mig",xi=1.0,omega=1.0)
-m_fundnicessp3 = getsspnicemodel(scen="SSP3",migyesno="mig",xi=1.0,omega=1.0)
-m_fundnicessp4 = getsspnicemodel(scen="SSP4",migyesno="mig",xi=1.0,omega=1.0)
-m_fundnicessp5 = getsspnicemodel(scen="SSP5",migyesno="mig",xi=1.0,omega=1.0)
-
 m_fund = getfund()
 
 run(m_nice_ssp1_nomig;ntimesteps=151)
@@ -34,11 +26,6 @@ run(m_nice_ssp2_nomig;ntimesteps=151)
 run(m_nice_ssp3_nomig;ntimesteps=151)
 run(m_nice_ssp4_nomig;ntimesteps=151)
 run(m_nice_ssp5_nomig;ntimesteps=151)
-run(m_fundnicessp1;ntimesteps=151)
-run(m_fundnicessp2;ntimesteps=151)
-run(m_fundnicessp3;ntimesteps=151)
-run(m_fundnicessp4;ntimesteps=151)
-run(m_fundnicessp5;ntimesteps=151)
 run(m_fund)
 
 # Damages within a given region independent of income (xi=0)
@@ -53,17 +40,6 @@ run(m_nice_ssp3_nomig_xi0;ntimesteps=151)
 run(m_nice_ssp4_nomig_xi0;ntimesteps=151)
 run(m_nice_ssp5_nomig_xi0;ntimesteps=151)
 
-m_fundnicessp1_xi0 = getsspnicemodel(scen="SSP1",migyesno="mig",xi=0.0,omega=1.0)
-m_fundnicessp2_xi0 = getsspnicemodel(scen="SSP2",migyesno="mig",xi=0.0,omega=1.0)
-m_fundnicessp3_xi0 = getsspnicemodel(scen="SSP3",migyesno="mig",xi=0.0,omega=1.0)
-m_fundnicessp4_xi0 = getsspnicemodel(scen="SSP4",migyesno="mig",xi=0.0,omega=1.0)
-m_fundnicessp5_xi0 = getsspnicemodel(scen="SSP5",migyesno="mig",xi=0.0,omega=1.0)
-run(m_fundnicessp1_xi0)
-run(m_fundnicessp2_xi0)
-run(m_fundnicessp3_xi0)
-run(m_fundnicessp4_xi0)
-run(m_fundnicessp5_xi0)
-
 # Damages within a given region inversely proportional to income (xi=-1)
 m_nice_ssp1_nomig_xim1 = getmigrationnicemodel(scen="SSP1",migyesno="nomig",xi=-1.0,omega=1.0)
 m_nice_ssp2_nomig_xim1 = getmigrationnicemodel(scen="SSP2",migyesno="nomig",xi=-1.0,omega=1.0)
@@ -75,17 +51,6 @@ run(m_nice_ssp2_nomig_xim1;ntimesteps=151)
 run(m_nice_ssp3_nomig_xim1;ntimesteps=151)
 run(m_nice_ssp4_nomig_xim1;ntimesteps=151)
 run(m_nice_ssp5_nomig_xim1;ntimesteps=151)
-
-m_fundnicessp1_xim1 = getsspnicemodel(scen="SSP1",migyesno="mig",xi=-1.0,omega=1.0)
-m_fundnicessp2_xim1 = getsspnicemodel(scen="SSP2",migyesno="mig",xi=-1.0,omega=1.0)
-m_fundnicessp3_xim1 = getsspnicemodel(scen="SSP3",migyesno="mig",xi=-1.0,omega=1.0)
-m_fundnicessp4_xim1 = getsspnicemodel(scen="SSP4",migyesno="mig",xi=-1.0,omega=1.0)
-m_fundnicessp5_xim1 = getsspnicemodel(scen="SSP5",migyesno="mig",xi=-1.0,omega=1.0)
-run(m_fundnicessp1_xim1)
-run(m_fundnicessp2_xim1)
-run(m_fundnicessp3_xim1)
-run(m_fundnicessp4_xim1)
-run(m_fundnicessp5_xim1)
 
 
 migration_quint = DataFrame(
@@ -159,12 +124,14 @@ leave_quint = stack(
 )
 rename!(leave_quint, :variable => :leave_type, :value => :leave_quint)
 leave_quint[!,:leave_type] = map(x->SubString(String(x), 13), leave_quint[:,:leave_type])
-leave_quint[!,:type_name] = [leave_quint[i,:leave_type]=="damageprop" ? "proportional" : (leave_quint[i,:leave_type]=="damageindep" ? "independent" : "inversely prop.") for i in 1:size(leave_quint,1)]
+leave_quint[!,:type_name] = [leave_quint[i,:leave_type]=="damageprop" ? "proportional" : (leave_quint[i,:leave_type]=="damageindep" ? "independent" : "inversely prop.") for i in eachindex(leave_quint[:,1])]
 regions_fullname = DataFrame(
     fundregion=regions,
     regionname = ["United States","Canada","Western Europe", "Japan & South Korea","Australia & New Zealand","Central & Eastern Europe","Former Soviet Union", "Middle East", "Central America", "South America","South Asia","Southeast Asia","China plus", "North Africa","Sub-Saharan Africa","Small Island States"]
 )
 leave_quint = innerjoin(leave_quint, regions_fullname, on =:fundregion)
+
+# For SSP2, this gives Fig.1a
 for s in ssps
     leave_quint |> @filter(_.year >= 2015 && _.year <= 2100 && _.scen == s && _.leave_type == "damageinvprop") |> @vlplot(
         mark={:line,point={filled=true,size=80}}, width=300, height=250, columns=4, wrap={"regionname:o", title=nothing, header={labelFontSize=24}}, 
@@ -172,7 +139,7 @@ for s in ssps
         y={"leave_quint:q", title = "Total emigrants", axis={labelFontSize=20,titleFontSize=20}},
         color={"quintile:o",scale={scheme=:darkmulti},legend={title = "Quintile", titleFontSize=20, symbolSize=80, labelFontSize=20, offset=40}},
         resolve = {scale={y=:independent}}
-    ) |> save(joinpath(@__DIR__, "../results/migflow_ineq/", string("leave_quint_daminvprop_",s,"_v5.pdf")))
+    ) |> save(joinpath(@__DIR__, "../results/migflow_ineq/", string("leave_quint_daminvprop_",s,"_v5.png")))
 end
 
 enter_quint = stack(
@@ -183,6 +150,8 @@ enter_quint = stack(
 rename!(enter_quint, :variable => :enter_type, :value => :enter_quint)
 enter_quint[!,:enter_type] = map(x->SubString(String(x), 13), enter_quint[:,:enter_type])
 enter_quint = innerjoin(enter_quint, regions_fullname, on =:fundregion)
+
+# For SSP2, this gives Fig.B1
 for s in ssps
     enter_quint |> @filter(_.year >= 2015 && _.year <= 2100 && _.scen == s && _.enter_type == "damageinvprop") |> @vlplot(
         mark={:line,point={filled=true,size=80}}, width=300, height=250, columns=4, wrap={"regionname:o", title=nothing, header={labelFontSize=24}}, 
@@ -190,7 +159,7 @@ for s in ssps
         y={"enter_quint:q", title = "Total immigrants", axis={labelFontSize=20,titleFontSize=20}},
         color={"quintile:o",scale={scheme=:darkmulti},legend={title = "Quintile", titleFontSize=20, symbolSize=80, labelFontSize=20,offset=20}},
         resolve = {scale={y=:independent}}
-    ) |> save(joinpath(@__DIR__, "../results/migflow_ineq/", string("enter_quint_daminvprop_",s,"_v5.pdf")))
+    ) |> save(joinpath(@__DIR__, "../results/migflow_ineq/", string("enter_quint_daminvprop_",s,"_v5.png")))
 end
 
 migration_quint[!,:netmig_quint_damageprop] = migration_quint[!,:enter_quint_xi1] .- migration_quint[!,:leave_quint_xi1]
@@ -206,8 +175,9 @@ rename!(netmig_quint_all, :variable => :netmig_quint_type, :value => :netmig_qui
 netmig_quint_all = innerjoin(netmig_quint_all,regions_fullname, on=:fundregion)
 netmig_quint_all_p = netmig_quint_all[(map(x->mod(x,10)==0,netmig_quint_all[:,:year])),:]
 netmig_quint_all_p[!,:netmig_quint_type] = map(x->SubString(String(x), 14), netmig_quint_all_p[:,:netmig_quint_type])
-netmig_quint_all_p[!,:type_name] = [netmig_quint_all_p[i,:netmig_quint_type]=="damageprop" ? "proportional" : (netmig_quint_all_p[i,:netmig_quint_type]=="damageindep" ? "independent" : "inversely prop.") for i in 1:size(netmig_quint_all_p,1)]
+netmig_quint_all_p[!,:type_name] = [netmig_quint_all_p[i,:netmig_quint_type]=="damageprop" ? "proportional" : (netmig_quint_all_p[i,:netmig_quint_type]=="damageindep" ? "independent" : "inversely prop.") for i in eachindex(netmig_quint_all_p[:,1])]
 
+# For SSP2, this gives Fig.B2
 for s in ssps
     netmig_quint_all_p |> @filter(_.year >= 2015 && _.year <= 2100 && _.scen == s) |> @vlplot(
         mark={:point,size=60}, width=300, height=250, columns=4, wrap={"regionname:o", title=nothing, header={labelFontSize=24}}, 
@@ -255,8 +225,10 @@ migstock_quint = stack(
 )
 rename!(migstock_quint, :variable => :migstock_type, :value => :migstock)
 migstock_quint[!,:migstock_type] = map(x->SubString(String(x), 10), migstock_quint[:,:migstock_type])
-migstock_quint[!,:type_name] = [migstock_quint[i,:migstock_type]=="damageprop" ? "proportional" : (migstock_quint[i,:migstock_type]=="damageindep" ? "independent" : "inversely prop.") for i in 1:size(migstock_quint,1)]
+migstock_quint[!,:type_name] = [migstock_quint[i,:migstock_type]=="damageprop" ? "proportional" : (migstock_quint[i,:migstock_type]=="damageindep" ? "independent" : "inversely prop.") for i in eachindex(migstock_quint[:,1])]
 migstock_quint = innerjoin(migstock_quint, regions_fullname, on =:fundregion)
+
+# For SSP2, this gives Fig.B1
 for s in ssps
     migstock_quint |> @filter(_.year >= 2015 && _.year <= 2100 && _.scen == s) |> @vlplot(
         mark={:point,size=60}, width=300, height=250, columns=4, wrap={"regionname:o", title=nothing, header={labelFontSize=24}}, 
@@ -407,8 +379,13 @@ leave_quint_ccshare = stack(
 )
 rename!(leave_quint_ccshare, :variable => :leave_type, :value => :leave_quint_ccshare_nocc)
 leave_quint_ccshare[!,:damage_elasticity] = map(x->SubString(string(x),21),leave_quint_ccshare[:,:leave_type])
-leave_quint_ccshare[!,:type_name] = [leave_quint_ccshare[i,:damage_elasticity]=="damageprop" ? "proportional" : (leave_quint_ccshare[i,:damage_elasticity]=="damageindep" ? "independent" : "inversely prop.") for i in 1:size(leave_quint_ccshare,1)]
+leave_quint_ccshare[!,:type_name] = [leave_quint_ccshare[i,:damage_elasticity]=="damageprop" ? "proportional" : (leave_quint_ccshare[i,:damage_elasticity]=="damageindep" ? "independent" : "inversely prop.") for i in eachindex(leave_quint_ccshare[:,1])]
 leave_quint_ccshare = innerjoin(leave_quint_ccshare, regions_fullname, on=:fundregion)
+
+# For SSP2, this gives Extended Data Fig.3
+# For SSP3, this gives Extended Data Fig.4
+# For SSP2 and original SSP quantifications, this gives Fig.B10
+# For SSP2 and remittances catching up with damages, this gives Fig.B11
 for s in ssps
     leave_quint_ccshare |> @filter(_.year >= 2015 && _.year <= 2100 && _.scen == s) |> @vlplot(
         mark={:point,size=60}, width=300, height=250, columns=4, wrap={"regionname:o", title=nothing, header={labelFontSize=24}}, 
@@ -422,6 +399,10 @@ end
 
 # Plot associated maps
 leave_maps = leftjoin(leave_quint_ccshare, isonum_fundregion, on = :fundregion)
+
+# For SSP2 and SSP3 combined and damages inversely proportional, this gives Fig.4 (top)
+# For SSP2 and SSP3 combined and damages proportional, this gives Extended Data Fig.5 (top)
+# For SSP2 and SSP3 combined and damages independent, this gives Extended Data Fig.6 (top)
 for s in ssps
     for d in ["damageprop","damageindep","damageinvprop"]
         @vlplot(width=800, height=600) + @vlplot(mark={:geoshape, stroke = :lightgray}, 
@@ -429,7 +410,7 @@ for s in ssps
             transform = [{lookup=:id, from={data=filter(row -> row[:scen] == s && row[:year] == 2100 && row[:damage_elasticity] == d && row[:quintile] == 1, leave_maps), key=:isonum, fields=[string(:leave_quint_ccshare_nocc)]}}],
             projection={type=:naturalEarth1}, title = {text=string("SSP2-RCP4.5"),fontSize=24}, 
             color = {:leave_quint_ccshare_nocc, type=:quantitative, scale={domain=[-0.4,0.4], scheme=:pinkyellowgreen}, legend={title="Change vs no CC", titleFontSize=20, titleLimit=260, symbolSize=60, labelFontSize=20, labelLimit=220}}
-        ) |> save(joinpath(@__DIR__, "../results/world_maps_ineq/", string("leave_q1_ccshare_", s, "_", d, "_v5.pdf")))
+        ) |> save(joinpath(@__DIR__, "../results/world_maps_ineq/", string("leave_q1_ccshare_", s, "_", d, "_v5.png")))
     end
 end
 
@@ -443,9 +424,10 @@ leave_quint_dec_nocc = stack(
 )
 rename!(leave_quint_dec_nocc, :variable => :leave_type, :value => :leave_quint_diff_dec_nocc)
 leave_quint_dec_nocc[!,:leave_type] = map(x->SubString(string(x),22),leave_quint_dec_nocc[:,:leave_type])
-leave_quint_dec_nocc[!,:type_name] = [leave_quint_dec_nocc[i,:leave_type]=="damageprop" ? "proportional" : (leave_quint_dec_nocc[i,:leave_type]=="damageindep" ? "independent" : "inversely prop.") for i in 1:size(leave_quint_dec_nocc,1)]
+leave_quint_dec_nocc[!,:type_name] = [leave_quint_dec_nocc[i,:leave_type]=="damageprop" ? "proportional" : (leave_quint_dec_nocc[i,:leave_type]=="damageindep" ? "independent" : "inversely prop.") for i in eachindex(leave_quint_dec_nocc[:,1])]
 leave_quint_dec_nocc = innerjoin(leave_quint_dec_nocc, regions_fullname, on=:fundregion)
 
+# For SSP2, this gives Fig.B9
 for s in ssps
     leave_quint_dec_nocc |> @filter(_.decade >= 2010 && _.decade <= 2100 && _.scen == s) |> @vlplot(
         mark={:point,size=60}, width=300, height=250, columns=4, wrap={"regionname:o", title=nothing, header={labelFontSize=24}}, 
@@ -486,7 +468,7 @@ migration_quint_nofert_p = innerjoin(migration_quint_nofert_p, regions_fullname,
 migration_quint_nofert_p |> @filter(_.year >= 2015 && _.year <= 2100) |> @vlplot(
     mark={:point,filled=true,size=80}, width=300, height=250, columns=4, wrap={"regionname:o", title=nothing, header={labelFontSize=24}}, 
     x={"year:o", axis={labelFontSize=16, values = 2010:10:2100}, title=nothing},
-    y={"leave_quint_ccshare_xi0:q", title = "CC effect on total emigrants", axis={labelFontSize=20,titleFontSize=20}},
+    y={"leave_quint_ccshare_xim1:q", title = "CC effect on total emigrants", axis={labelFontSize=20,titleFontSize=20}},
     color={"quintile:o",scale={scheme=:darkmulti},legend={title = "Quintile", titleFontSize=20, symbolSize=80, labelFontSize=20}},
     resolve = {scale={y=:independent}}
-) |> save(joinpath(@__DIR__, "../results/migflow_ineq/", string("leave_quint_ccshare_nofert_SSP2_damindep_v5.png")))
+) |> save(joinpath(@__DIR__, "../results/migflow_ineq/", string("FigB12.png")))

@@ -57,7 +57,7 @@ ssp_edu[!,:pop_share] = ssp_edu[:,:pop] ./ ssp_edu[:,:pop_all]
 ssp_edu[!,:outmig_share] = ssp_edu[:,:outmig] ./ ssp_edu[:,:outmig_all]
 ssp_edu[!,:inmig_share] = ssp_edu[:,:inmig] ./ ssp_edu[:,:inmig_all]
 for name in [:pop,:inmig,:outmig] 
-    for i in 1:size(ssp_edu,1) 
+    for i in eachindex(ssp_edu[:,1]) 
         if ssp_edu[i,name] == 0.0 && ssp_edu[i,Symbol(name,Symbol("_all"))] == 0.0 
             ssp_edu[i,Symbol(name,Symbol("_share"))] = 0.0
         end
@@ -69,22 +69,14 @@ sort(ssp_edu,[:scen,:period,:region,:edu,])
 ################################################### Calculate education levels of migrants #########################################
 # Plot evolution of outmig and inmig per education level for all SSP
 ssp_edu |> @filter(_.period <2100) |> @vlplot(
-    mark={:errorband, extent=:ci}, y="outmig_share:q", x="period:o", row = {"edu:o", axis={labelFontSize=16}, title=nothing},
-    color={"scen:o", scale={scheme=:category10}}
-) |> save(joinpath(@__DIR__, "../results/education/", "outmig_edu.png"))
-ssp_edu |> @filter(_.period <2100) |> @vlplot(
     mark={:errorband, extent=:ci}, y={"outmig_share:q", title = "Shares, emigrants", axis={labelFontSize=20,titleFontSize=20}}, x={"period:o",title=nothing,labelFontSize=16}, row = {"scen:o", axis={labelFontSize=20}, title=nothing},
     color={"edu:o", scale={scheme=:dark2}, legend={title = "Education level", titleFontSize=20, symbolSize=80, labelFontSize=20, titleLimit=260}}
-) |> save(joinpath(@__DIR__, "../results/education/", "outmig_ssp.png"))
+) |> save(joinpath(@__DIR__, "../results/education/", "FigA1a.png"))
 
-ssp_edu |> @filter(_.period <2100) |> @vlplot(
-    :line, y="median(inmig_share)", x="period:o", row = {"edu:o", axis={labelFontSize=16}, title=nothing},
-    color={"scen:o", scale={scheme=:category10}}
-) |> save(joinpath(@__DIR__, "../results/education/", "inmig_edu.png"))
 ssp_edu |> @filter(_.period <2100) |> @vlplot(
     :line, y={"median(inmig_share)", title = "Shares, immigrants", axis={labelFontSize=20,titleFontSize=20}}, x={"period:o",labelFontSize=16, title=nothing}, row = {"scen:o", axis={labelFontSize=16}, title=nothing},
     color={"edu:o", scale={scheme=:dark2}, legend={title = "Education level", titleFontSize=20, symbolSize=80, labelFontSize=20, titleLimit=260}}
-) |> save(joinpath(@__DIR__, "../results/education/", "inmig_ssp.png"))
+) |> save(joinpath(@__DIR__, "../results/education/", "FigA1b.png"))
 
 # Plot changes in outmig/inmig compared to changes in pop
 ssp_edu[!,:outmigpop_ratio] = ssp_edu[:,:outmig_share] ./ ssp_edu[:,:pop_share]
@@ -117,7 +109,7 @@ countries=unique(edu_level[:,:country])
 for name in [:q1,:q2,:q3,:q4,:q5]
     edu_level[!,name] = zeros(size(edu_level,1))
 end
-for i in 1:size(edu_level,1)
+for i in eachindex(edu_level[:,1])
     if edu_level[i,:edu] == "e1"
         edu_level[i,:q1] = min(0.2,edu_level[i,:pop_share])
         edu_level[i,:q2] = min(0.2,max(edu_level[i,:pop_share]-0.2,0.0))
@@ -180,7 +172,10 @@ pop = innerjoin(pop, rename(iso3c_isonum,:iso3c=>:country,:isonum=>:LocID), on=:
 
 # Prepare gdp data from the World Bank's WDI as available at the IIASA SSP database. We use data for 2010
 # Unit: billion US$ 2005 / year PPP
-gdp_unstacked = load(joinpath(@__DIR__, "../input_data/gdphist.xlsx"), "data!A2:Q184") |> DataFrame
+gdp_unstacked = XLSX.readdata(joinpath(@__DIR__, "../input_data/gdphist.xlsx"), "data!A2:Q184")
+gdp_unstacked = DataFrame(gdp_unstacked, :auto)
+rename!(gdp_unstacked, Symbol.(Vector(gdp_unstacked[1,:])))
+deleteat!(gdp_unstacked,1)
 select!(gdp_unstacked, Not([:Model, Symbol("Scenario (History)"), :Variable, :Unit]))
 gdp = stack(gdp_unstacked, 2:size(gdp_unstacked, 2))
 rename!(gdp, :variable => :year0, :value => :gdp)
@@ -199,7 +194,7 @@ edu_quint = innerjoin(edu_quint, rename(gdp[(gdp[:,:year0].==2010),:],:Region=>:
 # We compute income quantiles: difference between values for two successive p on Lorenz curve
 p = range(0, step=0.2, stop=1)          # here we use income quintiles
 for q in 1:length(p)-1
-    gini[!,Symbol(string("q", q))] = [cdf.(Normal(), quantile.(Normal(), p[q+1]) .- sqrt(2) .* quantile.(Normal(), (gini[!,:gini][i] + 1)/2)) - cdf.(Normal(), quantile.(Normal(), p[q]) .- sqrt(2) .* quantile.(Normal(), (gini[!,:gini][i] + 1)/2)) for i in 1:size(gini,1)]
+    gini[!,Symbol(string("q", q))] = [cdf.(Normal(), quantile.(Normal(), p[q+1]) .- sqrt(2) .* quantile.(Normal(), (gini[!,:gini][i] + 1)/2)) - cdf.(Normal(), quantile.(Normal(), p[q]) .- sqrt(2) .* quantile.(Normal(), (gini[!,:gini][i] + 1)/2)) for i in eachindex(gini[:,1])]
 end
 gini_stack = stack(gini,5:9)
 rename!(gini_stack, :variable=>:quintile,:value=>:gdpshare_quint)
@@ -242,7 +237,7 @@ edu_stack |> @vlplot(
     x={"quintile:o", axis={titleFontSize=16}}, 
     color={"regionname:o", scale={scheme=:category20}, legend=nothing},
     shape={"migtype:n",scale = {range=["triangle-up","circle"]},legend={title = "Migration in/out", titleFontSize=20, symbolSize=80, labelFontSize=16}}
-) |> save(joinpath(@__DIR__, "../results/education/", "mig_quint_reg.png"))
+) |> save(joinpath(@__DIR__, "../results/education/", "FigA2.png"))
 
 
 ####################################### Attribute income levels to bilateral migrant flows ########################################
@@ -288,7 +283,7 @@ countries=unique(edu_level[:,:country])
 for name in [:t1,:t2,:t3]
     edu_level[!,name] = zeros(size(edu_level,1))
 end
-for i in 1:size(edu_level,1)
+for i in eachindex(edu_level[:1])
     if edu_level[i,:edu] == "e1"
         edu_level[i,:t1] = min(1/3,edu_level[i,:pop_share])
         edu_level[i,:t2] = min(1/3,max(edu_level[i,:pop_share]-1/3,0.0))
@@ -346,7 +341,7 @@ edu_terc = innerjoin(edu_terc, rename(gdp[(gdp[:,:year0].==2010),:],:Region=>:co
 gini = CSV.File(joinpath(@__DIR__, "../../../../YSSP-IIASA/data/gini_rao/ssp_ginis.csv")) |> DataFrame
 p = range(0, step=1/3, stop=1)     
 for t in 1:length(p)-1
-    gini[!,Symbol(string("t", t))] = [cdf.(Normal(), quantile.(Normal(), p[t+1]) .- sqrt(2) .* quantile.(Normal(), (gini[!,:gini][i] + 1)/2)) - cdf.(Normal(), quantile.(Normal(), p[t]) .- sqrt(2) .* quantile.(Normal(), (gini[!,:gini][i] + 1)/2)) for i in 1:size(gini,1)]
+    gini[!,Symbol(string("t", t))] = [cdf.(Normal(), quantile.(Normal(), p[t+1]) .- sqrt(2) .* quantile.(Normal(), (gini[!,:gini][i] + 1)/2)) - cdf.(Normal(), quantile.(Normal(), p[t]) .- sqrt(2) .* quantile.(Normal(), (gini[!,:gini][i] + 1)/2)) for i in eachindex(gini[:1])]
 end
 gini_stack = stack(gini,5:7)
 rename!(gini_stack, :variable=>:tercile,:value=>:gdpshare_terc)

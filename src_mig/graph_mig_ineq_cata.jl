@@ -209,9 +209,11 @@ leave_cata_quint_ccshare = stack(
 )
 rename!(leave_cata_quint_ccshare, :variable => :leave_type, :value => :leave_cata_quint_ccshare_nocc)
 leave_cata_quint_ccshare[!,:damage_elasticity] = map(x->SubString(string(x),26),leave_cata_quint_ccshare[:,:leave_type])
-leave_cata_quint_ccshare[!,:type_name] = [leave_cata_quint_ccshare[i,:damage_elasticity]=="damageprop" ? "proportional" : (leave_cata_quint_ccshare[i,:damage_elasticity]=="damageindep" ? "independent" : "inversely prop.") for i in 1:size(leave_cata_quint_ccshare,1)]
+leave_cata_quint_ccshare[!,:type_name] = [leave_cata_quint_ccshare[i,:damage_elasticity]=="damageprop" ? "proportional" : (leave_cata_quint_ccshare[i,:damage_elasticity]=="damageindep" ? "independent" : "inversely prop.") for i in eachindex(leave_cata_quint_ccshare[:,1])]
 leave_cata_quint_ccshare = innerjoin(leave_cata_quint_ccshare, regions_fullname, on=:fundregion)
 
+# For SSP2, this gives Fig.B13
+# For SSP3, this gives Fig.B14
 for s in ssps
     leave_cata_quint_ccshare |> @filter(_.year >= 2015 && _.year <= 2100 && _.scen == s) |> @vlplot(
         mark={:point,size=60}, width=300, height=250, columns=4, wrap={"regionname:o", title=nothing, header={labelFontSize=24}}, 
@@ -225,6 +227,10 @@ end
 
 # Plot associated maps
 leave_cata_maps = leftjoin(leave_cata_quint_ccshare, isonum_fundregion, on = :fundregion)
+
+# For SSP2 and SSP3 combined and damages inversely proportional, this gives Fig.4 (bottom)
+# For SSP2 and SSP3 combined and damages proportional, this gives Extended Data Fig.5 (bottom)
+# For SSP2 and SSP3 combined and damages independent, this gives Extended Data Fig.6 (bottom)
 for s in ssps
     for d in ["damageprop","damageindep","damageinvprop"]
         @vlplot(width=800, height=600) + @vlplot(mark={:geoshape, stroke = :lightgray}, 

@@ -4,7 +4,6 @@ using Statistics, DataFrames
 using MimiFUND
 
 include("main_mig_nice.jl")
-include("fund_ssp_ineq.jl")
 
 
 ssps = ["SSP1","SSP2","SSP3","SSP4","SSP5"]
@@ -24,26 +23,11 @@ m_nice_ssp2_nomig = getmigrationnicemodel(scen="SSP2",migyesno="nomig",xi=1.0,om
 m_nice_ssp3_nomig = getmigrationnicemodel(scen="SSP3",migyesno="nomig",xi=1.0,omega=1.0)
 m_nice_ssp4_nomig = getmigrationnicemodel(scen="SSP4",migyesno="nomig",xi=1.0,omega=1.0)
 m_nice_ssp5_nomig = getmigrationnicemodel(scen="SSP5",migyesno="nomig",xi=1.0,omega=1.0)
-
-m_fundnicessp1 = getsspnicemodel(scen="SSP1",migyesno="mig",xi=1.0,omega=1.0)
-m_fundnicessp2 = getsspnicemodel(scen="SSP2",migyesno="mig",xi=1.0,omega=1.0)
-m_fundnicessp3 = getsspnicemodel(scen="SSP3",migyesno="mig",xi=1.0,omega=1.0)
-m_fundnicessp4 = getsspnicemodel(scen="SSP4",migyesno="mig",xi=1.0,omega=1.0)
-m_fundnicessp5 = getsspnicemodel(scen="SSP5",migyesno="mig",xi=1.0,omega=1.0)
-
-m_fund = getfund()
-
 run(m_nice_ssp1_nomig;ntimesteps=151)
 run(m_nice_ssp2_nomig;ntimesteps=151)
 run(m_nice_ssp3_nomig;ntimesteps=151)
 run(m_nice_ssp4_nomig;ntimesteps=151)
 run(m_nice_ssp5_nomig;ntimesteps=151)
-run(m_fundnicessp1)
-run(m_fundnicessp2)
-run(m_fundnicessp3)
-run(m_fundnicessp4)
-run(m_fundnicessp5)
-run(m_fund)
 
 # Damages within a given region independent of income (xi=0)
 m_nice_ssp1_nomig_xi0 = getmigrationnicemodel(scen="SSP1",migyesno="nomig",xi=0.0,omega=1.0)
@@ -57,17 +41,6 @@ run(m_nice_ssp3_nomig_xi0)
 run(m_nice_ssp4_nomig_xi0)
 run(m_nice_ssp5_nomig_xi0)
 
-m_fundnicessp1_xi0 = getsspnicemodel(scen="SSP1",migyesno="mig",xi=0.0,omega=1.0)
-m_fundnicessp2_xi0 = getsspnicemodel(scen="SSP2",migyesno="mig",xi=0.0,omega=1.0)
-m_fundnicessp3_xi0 = getsspnicemodel(scen="SSP3",migyesno="mig",xi=0.0,omega=1.0)
-m_fundnicessp4_xi0 = getsspnicemodel(scen="SSP4",migyesno="mig",xi=0.0,omega=1.0)
-m_fundnicessp5_xi0 = getsspnicemodel(scen="SSP5",migyesno="mig",xi=0.0,omega=1.0)
-run(m_fundnicessp1_xi0)
-run(m_fundnicessp2_xi0)
-run(m_fundnicessp3_xi0)
-run(m_fundnicessp4_xi0)
-run(m_fundnicessp5_xi0)
-
 # Damages within a given region inversely proportional to income (xi=-1)
 m_nice_ssp1_nomig_xim1 = getmigrationnicemodel(scen="SSP1",migyesno="nomig",xi=-1.0,omega=1.0)
 m_nice_ssp2_nomig_xim1 = getmigrationnicemodel(scen="SSP2",migyesno="nomig",xi=-1.0,omega=1.0)
@@ -79,17 +52,6 @@ run(m_nice_ssp2_nomig_xim1)
 run(m_nice_ssp3_nomig_xim1)
 run(m_nice_ssp4_nomig_xim1)
 run(m_nice_ssp5_nomig_xim1)
-
-m_fundnicessp1_xim1 = getsspnicemodel(scen="SSP1",migyesno="mig",xi=-1.0,omega=1.0)
-m_fundnicessp2_xim1 = getsspnicemodel(scen="SSP2",migyesno="mig",xi=-1.0,omega=1.0)
-m_fundnicessp3_xim1 = getsspnicemodel(scen="SSP3",migyesno="mig",xi=-1.0,omega=1.0)
-m_fundnicessp4_xim1 = getsspnicemodel(scen="SSP4",migyesno="mig",xi=-1.0,omega=1.0)
-m_fundnicessp5_xim1 = getsspnicemodel(scen="SSP5",migyesno="mig",xi=-1.0,omega=1.0)
-run(m_fundnicessp1_xim1)
-run(m_fundnicessp2_xim1)
-run(m_fundnicessp3_xim1)
-run(m_fundnicessp4_xim1)
-run(m_fundnicessp5_xim1)
 
 
 ################################### Compare damages in absolute terms and in % of GDP in Mig-NICE-FUND and in NICE-FUND with SSP #####################
@@ -151,7 +113,6 @@ damages[:,:gdp_migNICEFUND_xim1] = gdp_migNICEFUND_xim1
 damages[:,:damgdp_migNICEFUND] = damages[:,:damages_migNICEFUND] ./ (damages[:,:gdp_migNICEFUND] .* 10^9)
 damages[:,:damgdp_migNICEFUND_xi0] = damages[:,:damages_migNICEFUND_xi0] ./ (damages[:,:gdp_migNICEFUND_xi0] .* 10^9)
 damages[:,:damgdp_migNICEFUND_xim1] = damages[:,:damages_migNICEFUND_xim1] ./ (damages[:,:gdp_migNICEFUND_xim1] .* 10^9)
-rename!(damages, :damages_migNICEFUND => :dam_damprop, :damages_migNICEFUND_xi0 => :dam_damindep, :damages_migNICEFUND_xim1 => :dam_daminvprop)
 rename!(damages, :damgdp_migNICEFUND => :damgdp_damprop, :damgdp_migNICEFUND_xi0 => :damgdp_damindep, :damgdp_migNICEFUND_xim1 => :damgdp_daminvprop)
 
 
@@ -226,8 +187,11 @@ income_shock_s = stack(
 )
 rename!(income_shock_s, :variable => :income_shock_type, :value => :income_shock)
 income_shock_s[!,:damage_elasticity] = map(x->SubString(String(x),14), income_shock_s[:,:income_shock_type])
-income_shock_s[!,:type_name] = [income_shock_s[i,:damage_elasticity]=="damprop" ? "proportional" : (income_shock_s[i,:damage_elasticity]=="damindep" ? "independent" : "inversely prop.") for i in 1:size(income_shock_s,1)]
+income_shock_s[!,:type_name] = [income_shock_s[i,:damage_elasticity]=="damprop" ? "proportional" : (income_shock_s[i,:damage_elasticity]=="damindep" ? "independent" : "inversely prop.") for i in eachindex(income_shock_s[:,1])]
 income_shock_s = innerjoin(income_shock_s, regions_fullname, on =:fundregion)
+
+# For SSP2, this gives Fig.B6
+# For SSP3, this gives Fig.B7
 for s in ssps
     income_shock_s |> @filter(_.year >= 2015 && _.year <= 2100 && _.scen == s) |> @vlplot(
         mark={:point,size=60}, width=300, height=250, columns=4, wrap={"regionname:o", title=nothing, header={labelFontSize=24}}, 
@@ -240,6 +204,8 @@ for s in ssps
 end
 
 income_shock_maps = leftjoin(income_shock_s, isonum_fundregion, on = :fundregion)
+
+# For SSP2 and SSP3 combined, this gives Fig.2
 for s in ssps
     for d in ["damprop","damindep","daminvprop"]
         @vlplot(width=800, height=600) + @vlplot(mark={:geoshape, stroke = :lightgray}, 
@@ -247,6 +213,6 @@ for s in ssps
             transform = [{lookup=:id, from={data=filter(row -> row[:scen] == s && row[:year] == 2100 && row[:damage_elasticity] == d && row[:quintile] == 1, income_shock_maps), key=:isonum, fields=[string(:income_shock)]}}],
             projection={type=:naturalEarth1}, title = {text=string("SSP2-RCP4.5"),fontSize=24}, 
             color = {:income_shock, type=:quantitative, scale={domain=[-1.2,1.2], scheme=:blueorange}, legend={title="Share of income", titleFontSize=20, titleLimit=260, symbolSize=60, labelFontSize=20, labelLimit=220}}
-        ) |> save(joinpath(@__DIR__, "../results/world_maps_ineq/", string("income_shock_q1_", s, "_", d, "_v5.pdf")))
+        ) |> save(joinpath(@__DIR__, "../results/world_maps_ineq/", string("income_shock_q1_", s, "_", d, "_v5.png")))
     end
 end

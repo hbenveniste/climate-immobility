@@ -4,7 +4,6 @@ using Statistics, DataFrames, Query
 using MimiFUND
 
 include("main_mig_nice.jl")
-include("fund_ssp_ineq.jl")
 
 ssps = ["SSP1","SSP2","SSP3","SSP4","SSP5"]
 regions = ["USA", "CAN", "WEU", "JPK", "ANZ", "EEU", "FSU", "MDE", "CAM", "LAM", "SAS", "SEA", "CHI", "MAF", "SSA", "SIS"]
@@ -21,38 +20,11 @@ m_nice_ssp2_nomig = getmigrationnicemodel(scen="SSP2",migyesno="nomig",xi=1.0,om
 m_nice_ssp3_nomig = getmigrationnicemodel(scen="SSP3",migyesno="nomig",xi=1.0,omega=1.0)
 m_nice_ssp4_nomig = getmigrationnicemodel(scen="SSP4",migyesno="nomig",xi=1.0,omega=1.0)
 m_nice_ssp5_nomig = getmigrationnicemodel(scen="SSP5",migyesno="nomig",xi=1.0,omega=1.0)
-
-m_fundnicessp1 = getsspnicemodel(scen="SSP1",migyesno="mig",xi=1.0,omega=1.0)
-m_fundnicessp2 = getsspnicemodel(scen="SSP2",migyesno="mig",xi=1.0,omega=1.0)
-m_fundnicessp3 = getsspnicemodel(scen="SSP3",migyesno="mig",xi=1.0,omega=1.0)
-m_fundnicessp4 = getsspnicemodel(scen="SSP4",migyesno="mig",xi=1.0,omega=1.0)
-m_fundnicessp5 = getsspnicemodel(scen="SSP5",migyesno="mig",xi=1.0,omega=1.0)
-
-m_fund = getfund()
-
 run(m_nice_ssp1_nomig)
 run(m_nice_ssp2_nomig)
 run(m_nice_ssp3_nomig)
 run(m_nice_ssp4_nomig)
 run(m_nice_ssp5_nomig)
-run(m_fundnicessp1)
-run(m_fundnicessp2)
-run(m_fundnicessp3)
-run(m_fundnicessp4)
-run(m_fundnicessp5)
-run(m_fund)
-
-m_fundnicessp1_nomig = getsspnicemodel(scen="SSP1",migyesno="nomig",xi=1.0,omega=1.0)
-m_fundnicessp2_nomig = getsspnicemodel(scen="SSP2",migyesno="nomig",xi=1.0,omega=1.0)
-m_fundnicessp3_nomig = getsspnicemodel(scen="SSP3",migyesno="nomig",xi=1.0,omega=1.0)
-m_fundnicessp4_nomig = getsspnicemodel(scen="SSP4",migyesno="nomig",xi=1.0,omega=1.0)
-m_fundnicessp5_nomig = getsspnicemodel(scen="SSP5",migyesno="nomig",xi=1.0,omega=1.0)
-
-run(m_fundnicessp1_nomig)
-run(m_fundnicessp2_nomig)
-run(m_fundnicessp3_nomig)
-run(m_fundnicessp4_nomig)
-run(m_fundnicessp5_nomig)
 
 # Damages within a given region independent of income (xi=0)
 m_nice_ssp1_nomig_xi0 = getmigrationnicemodel(scen="SSP1",migyesno="nomig",xi=0.0,omega=1.0)
@@ -66,17 +38,6 @@ run(m_nice_ssp3_nomig_xi0)
 run(m_nice_ssp4_nomig_xi0)
 run(m_nice_ssp5_nomig_xi0)
 
-m_fundnicessp1_xi0 = getsspnicemodel(scen="SSP1",migyesno="mig",xi=0.0,omega=1.0)
-m_fundnicessp2_xi0 = getsspnicemodel(scen="SSP2",migyesno="mig",xi=0.0,omega=1.0)
-m_fundnicessp3_xi0 = getsspnicemodel(scen="SSP3",migyesno="mig",xi=0.0,omega=1.0)
-m_fundnicessp4_xi0 = getsspnicemodel(scen="SSP4",migyesno="mig",xi=0.0,omega=1.0)
-m_fundnicessp5_xi0 = getsspnicemodel(scen="SSP5",migyesno="mig",xi=0.0,omega=1.0)
-run(m_fundnicessp1_xi0)
-run(m_fundnicessp2_xi0)
-run(m_fundnicessp3_xi0)
-run(m_fundnicessp4_xi0)
-run(m_fundnicessp5_xi0)
-
 # Damages within a given region inversely proportional to income (xi=-1)
 m_nice_ssp1_nomig_xim1 = getmigrationnicemodel(scen="SSP1",migyesno="nomig",xi=-1.0,omega=1.0)
 m_nice_ssp2_nomig_xim1 = getmigrationnicemodel(scen="SSP2",migyesno="nomig",xi=-1.0,omega=1.0)
@@ -88,17 +49,6 @@ run(m_nice_ssp2_nomig_xim1)
 run(m_nice_ssp3_nomig_xim1)
 run(m_nice_ssp4_nomig_xim1)
 run(m_nice_ssp5_nomig_xim1)
-
-m_fundnicessp1_xim1 = getsspnicemodel(scen="SSP1",migyesno="mig",xi=-1.0,omega=1.0)
-m_fundnicessp2_xim1 = getsspnicemodel(scen="SSP2",migyesno="mig",xi=-1.0,omega=1.0)
-m_fundnicessp3_xim1 = getsspnicemodel(scen="SSP3",migyesno="mig",xi=-1.0,omega=1.0)
-m_fundnicessp4_xim1 = getsspnicemodel(scen="SSP4",migyesno="mig",xi=-1.0,omega=1.0)
-m_fundnicessp5_xim1 = getsspnicemodel(scen="SSP5",migyesno="mig",xi=-1.0,omega=1.0)
-run(m_fundnicessp1_xim1)
-run(m_fundnicessp2_xim1)
-run(m_fundnicessp3_xim1)
-run(m_fundnicessp4_xim1)
-run(m_fundnicessp5_xim1)
 
 
 gini = DataFrame(
@@ -138,7 +88,7 @@ gini_all = stack(gini_p, [:gini_sspNICEFUND,:gini_migNICEFUND,:gini_ssp], [:scen
 rename!(gini_all, :variable => :gini_type, :value => :gini)
 gini_all = innerjoin(gini_all, regions_fullname, on=:fundregion)
 gini_all[:,:gini_type] = map(x->SubString(String(x),6), gini_all[:,:gini_type])
-gini_all[!,:type_name] = [gini_all[i,:gini_type]=="ssp" ? "Original SSP" : (gini_all[i,:gini_type]=="sspNICEFUND" ? "FUND + income dist." : "FUND + income dist. + migration") for i in 1:size(gini_all,1)]
+gini_all[!,:type_name] = [gini_all[i,:gini_type]=="ssp" ? "Original SSP" : (gini_all[i,:gini_type]=="sspNICEFUND" ? "FUND + income dist." : "FUND + income dist. + migration") for i in eachindex(gini_all[:,1])]
 
 gini_all |> @filter(_.year <= 2100 && _.year >= 2015) |> @vlplot(
     width=300, height=250, columns=4, wrap={"regionname:o", title=nothing, header={labelFontSize=24}}, mark={:point, size=80}, 
@@ -146,7 +96,7 @@ gini_all |> @filter(_.year <= 2100 && _.year >= 2015) |> @vlplot(
     y = {"gini:q", title="Gini coefficient", axis={labelFontSize=20,titleFontSize=20}}, 
     color = {"scen:n", scale={scheme=:category10}, legend={title="Scenario",titleFontSize=20, symbolSize=80, labelFontSize=20}}, 
     shape = {"type_name:o",scale={range=["circle","triangle-up","square"],domain=["Original SSP","FUND + income dist.","FUND + income dist. + migration"]}, legend={title="Model type",titleFontSize=20, symbolSize=80, labelFontSize=16, labelLimit = 240}}
-) |> save(joinpath(@__DIR__, "../results/inequality/", string("gini_v5.png")))
+) |> save(joinpath(@__DIR__, "../results/inequality/", string("FigB4.png")))
 
 
 gini_migNICEFUND_xi0 = vcat(
@@ -171,7 +121,7 @@ gini_p = gini[(map(x->mod(x,10)==0,gini[:,:year])),:]
 gini_xi_all = stack(gini_p, [:gini_migNICEFUND,:gini_migNICEFUND_xi0,:gini_migNICEFUND_xim1], [:scen, :fundregion, :year])
 rename!(gini_xi_all, :variable => :gini_type, :value => :gini)
 gini_xi_all[!,:gini_type] = map(x->SubString(string(x),6), gini_xi_all[:,:gini_type])
-gini_xi_all[!,:xi] = [gini_xi_all[i,:gini_type]=="migNICEFUND" ? "proportional" : (gini_xi_all[i,:gini_type]=="migNICEFUND_xi0" ? "independent" : "inversely prop.") for i in 1:size(gini_xi_all,1)]
+gini_xi_all[!,:xi] = [gini_xi_all[i,:gini_type]=="migNICEFUND" ? "proportional" : (gini_xi_all[i,:gini_type]=="migNICEFUND_xi0" ? "independent" : "inversely prop.") for i in eachindex(gini_xi_all[:,1])]
 gini_xi_all = innerjoin(gini_xi_all, regions_fullname, on=:fundregion)
 
 data_ssp = gini_xi_all |> @filter(_.year <= 2100 && _.year >= 2015) |> @vlplot(
@@ -180,4 +130,4 @@ data_ssp = gini_xi_all |> @filter(_.year <= 2100 && _.year >= 2015) |> @vlplot(
     y = {"gini:q", title="Gini coefficient", axis={labelFontSize=20,titleFontSize=20}}, 
     color = {"scen:n", scale={scheme=:category10}, legend={title="Scenario",titleFontSize=20, symbolSize=80, labelFontSize=20}}, 
     shape = {"xi:o", scale={range=["circle","triangle-up","square"],domain=["proportional","independent","inversely prop."]}, legend={title="Damages elasticity",titleFontSize=20, titleLimit=260, symbolSize=80, labelFontSize=20}}
-) |> save(joinpath(@__DIR__, "../results/inequality/", string("gini_mignice_xi_v5.png")))
+) |> save(joinpath(@__DIR__, "../results/inequality/", string("FigB5.png")))
