@@ -46,11 +46,11 @@ function getmigrationnicecatamodel(;datamigdir=path_datamigdir,scen="SSP2",migye
     add_comp!(m, addpop_nice, :addpop, after=:migration)
 
     # set input scenarios
-    set_param!(m, :scenconverter, :population, param_scen[Symbol("pop_",migyesno,"_",scen)])
-    set_param!(m, :scenconverter, :income, param_scen[Symbol("gdp_",migyesno,"_",scen)])
-    set_param!(m, :scenconverter, :energuse, param_scen[Symbol("en_",migyesno,"_",scen)])
-    set_param!(m, :scenconverter, :emission, param_scen[Symbol("em_",migyesno,"_",scen)])
-    set_param!(m, :scenconverter, :inequality, param_scen_ineq[Symbol("ineq_",migyesno,"_",scen)])
+    set_param!(m, :scenconverter, :population, param_scen[Symbol("pop_",migyesno,"_",scen,"_update")])
+    set_param!(m, :scenconverter, :income, param_scen[Symbol("gdp_",migyesno,"_",scen,"_update")])
+    set_param!(m, :scenconverter, :energuse, param_scen[Symbol("en_",migyesno,"_",scen,"_update")])
+    set_param!(m, :scenconverter, :emission, param_scen[Symbol("em_",migyesno,"_",scen,"_update")])
+    set_param!(m, :scenconverter, :inequality, param_scen_ineq[Symbol("ineq_",migyesno,"_",scen,"_update")])
 
     # Set parameters corresponding to input scenarios
     update_param!(m, :currtax, param_scen[Symbol("cp_",scen)])
