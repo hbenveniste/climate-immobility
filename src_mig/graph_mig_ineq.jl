@@ -139,7 +139,7 @@ for s in ssps
         y={"leave_quint:q", title = "Total emigrants", axis={labelFontSize=20,titleFontSize=20}},
         color={"quintile:o",scale={scheme=:darkmulti},legend={title = "Quintile", titleFontSize=20, symbolSize=80, labelFontSize=20, offset=40}},
         resolve = {scale={y=:independent}}
-    ) |> save(joinpath(@__DIR__, "../results/migflow_ineq/", string("leave_quint_daminvprop_",s,"_v5.png")))
+    ) |> save(joinpath(@__DIR__, "../results/migflow_ineq/", string("leave_quint_daminvprop_",s,"_v5_update.png")))
 end
 
 enter_quint = stack(
@@ -159,7 +159,7 @@ for s in ssps
         y={"enter_quint:q", title = "Total immigrants", axis={labelFontSize=20,titleFontSize=20}},
         color={"quintile:o",scale={scheme=:darkmulti},legend={title = "Quintile", titleFontSize=20, symbolSize=80, labelFontSize=20,offset=20}},
         resolve = {scale={y=:independent}}
-    ) |> save(joinpath(@__DIR__, "../results/migflow_ineq/", string("enter_quint_daminvprop_",s,"_v5.png")))
+    ) |> save(joinpath(@__DIR__, "../results/migflow_ineq/", string("enter_quint_daminvprop_",s,"_v5_update.png")))
 end
 
 migration_quint[!,:netmig_quint_damageprop] = migration_quint[!,:enter_quint_xi1] .- migration_quint[!,:leave_quint_xi1]
@@ -186,7 +186,7 @@ for s in ssps
         color={"quintile:o",scale={scheme=:darkmulti},legend={title=string("Quintile, ",s), titleFontSize=20, titleLimit=220, symbolSize=80, labelFontSize=20}},
         shape={"type_name:o",scale={range=["circle","triangle-up","square"],domain=["proportional","independent","inversely prop."]},legend={title = "Damages elasticity", titleFontSize=20, titleLimit=260, symbolSize=80, labelFontSize=20}},
         resolve = {scale={y=:independent}}
-    ) |> save(joinpath(@__DIR__, "../results/migflow_ineq/", string("netmig_quint_",s,"_v5.png")))
+    ) |> save(joinpath(@__DIR__, "../results/migflow_ineq/", string("netmig_quint_",s,"_v5_update.png")))
 end
 
 
@@ -237,7 +237,7 @@ for s in ssps
         color={"quintile:o",scale={scheme=:darkmulti},legend={title = "Quintile", titleFontSize=20, symbolSize=80, labelFontSize=20}},
         shape={"type_name:o",scale={range=["circle","triangle-up","square"],domain=["proportional","independent","inversely prop."]},legend={title = "Damages elasticity", titleFontSize=20, titleLimit=260, symbolSize=80, labelFontSize=20}},
         resolve = {scale={y=:independent}}
-    ) |> save(joinpath(@__DIR__, "../results/migflow_ineq/", string("migstock_quint_",s,"_v5.png")))
+    ) |> save(joinpath(@__DIR__, "../results/migflow_ineq/", string("migstock_quint_",s,"_v5_update.png")))
 end
 
 
@@ -394,7 +394,7 @@ for s in ssps
         color={"quintile:o",scale={scheme=:darkmulti},legend={title = "Quintile", titleFontSize=20, symbolSize=80, labelFontSize=20}},
         shape={"type_name:o",scale={range=["circle","triangle-up","square"],domain=["proportional","independent","inversely prop."]},legend={title = "Damages elasticity", titleFontSize=20, titleLimit=260, symbolSize=80, labelFontSize=20}},
         resolve = {scale={y=:independent}}
-    ) |> save(joinpath(@__DIR__, "../results/migflow_ineq/", string("leave_quint_ccshare_",s,"_v5.png")))
+    ) |> save(joinpath(@__DIR__, "../results/migflow_ineq/", string("leave_quint_ccshare_",s,"_v5_update.png")))
 end
 
 # Plot associated maps
@@ -410,7 +410,7 @@ for s in ssps
             transform = [{lookup=:id, from={data=filter(row -> row[:scen] == s && row[:year] == 2100 && row[:damage_elasticity] == d && row[:quintile] == 1, leave_maps), key=:isonum, fields=[string(:leave_quint_ccshare_nocc)]}}],
             projection={type=:naturalEarth1}, title = {text=string("SSP2-RCP4.5"),fontSize=24}, 
             color = {:leave_quint_ccshare_nocc, type=:quantitative, scale={domain=[-0.4,0.4], scheme=:pinkyellowgreen}, legend={title="Change vs no CC", titleFontSize=20, titleLimit=260, symbolSize=60, labelFontSize=20, labelLimit=220}}
-        ) |> save(joinpath(@__DIR__, "../results/world_maps_ineq/", string("leave_q1_ccshare_", s, "_", d, "_v5.png")))
+        ) |> save(joinpath(@__DIR__, "../results/world_maps_ineq/", string("leave_q1_ccshare_", s, "_", d, "_v5_update.png")))
     end
 end
 
@@ -436,7 +436,7 @@ for s in ssps
         color={"quintile:o",scale={scheme=:darkmulti},legend={title = "Quintile", titleFontSize=20, symbolSize=80, labelFontSize=20}},
         shape={"type_name:o",scale={range=["circle","triangle-up","square"],domain=["proportional","independent","inversely prop."]},legend={title = "Damages elasticity", titleFontSize=20, titleLimit=260, symbolSize=80, labelFontSize=20}},
         resolve = {scale={y=:independent}}
-    ) |> save(joinpath(@__DIR__, "../results/migflow_ineq/", string("leave_quint_dec_nocc_",s,"_v5.png")))
+    ) |> save(joinpath(@__DIR__, "../results/migflow_ineq/", string("leave_quint_dec_nocc_",s,"_v5_update.png")))
 end
 
 # Test for when we divide the CO2 fertilization effect by 10, and multiply all other damages by 10.
@@ -471,4 +471,4 @@ migration_quint_nofert_p |> @filter(_.year >= 2015 && _.year <= 2100) |> @vlplot
     y={"leave_quint_ccshare_xim1:q", title = "CC effect on total emigrants", axis={labelFontSize=20,titleFontSize=20}},
     color={"quintile:o",scale={scheme=:darkmulti},legend={title = "Quintile", titleFontSize=20, symbolSize=80, labelFontSize=20}},
     resolve = {scale={y=:independent}}
-) |> save(joinpath(@__DIR__, "../results/migflow_ineq/", string("FigB12.png")))
+) |> save(joinpath(@__DIR__, "../results/migflow_ineq/", string("FigB12_update.png")))

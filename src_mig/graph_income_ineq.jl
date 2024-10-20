@@ -154,7 +154,7 @@ for s in ssps
         color={"quintile:o",scale={scheme=:darkmulti},legend={title=string("Quintile, ",s), titleFontSize=20, titleLimit=220, symbolSize=80, labelFontSize=20}},
         shape={"type_name:o",scale={range=["circle","triangle-up","square"],domain=["proportional","independent","inversely prop."]},legend={title = "Damages elasticity", titleFontSize=20, titleLimit=260, symbolSize=80, labelFontSize=20}},
         resolve = {scale={y=:independent}}
-    ) |> save(joinpath(@__DIR__, "../results/income_ineq/", string("netrem_quint_",s,"_v5.png")))
+    ) |> save(joinpath(@__DIR__, "../results/income_ineq/", string("netrem_quint_",s,"_v5_update.png")))
 end
 
 
@@ -211,7 +211,7 @@ remdam_quint_p |> @filter(_.year >= 2015 && _.year <= 2100 && _.quintile == 1 &&
     y={"remdam_quint:q", title = "(Remittances-Damages)/GDP", axis={labelFontSize=20,titleFontSize=20}},
     color={"scenario:o",scale={scheme=:category10,reverse=true},legend={title = "Scenario", titleFontSize=20, symbolSize=80, labelFontSize=20}},
     resolve = {scale={y=:independent}}
-) |> save(joinpath(@__DIR__, "../results/damages_ineq/", string("Fig3.png")))
+) |> save(joinpath(@__DIR__, "../results/damages_ineq/", string("Fig3_update.png")))
 
 remdam_quint_p |> @filter(_.year >= 2015 && _.year <= 2100 && _.quintile == 1 && _.damage_elasticity == "damindep") |> @vlplot(
     mark={:line,point={filled=true,size=80}}, width=300, height=250, columns=4, wrap={"regionname:o", title=nothing, header={labelFontSize=24}}, 
@@ -219,4 +219,4 @@ remdam_quint_p |> @filter(_.year >= 2015 && _.year <= 2100 && _.quintile == 1 &&
     y={"remdam_quint:q", title = "(Remittances-Damages)/GDP", axis={labelFontSize=20,titleFontSize=20}},
     color={"scenario:o",scale={scheme=:category10,reverse=true},legend={title = "Scenario", titleFontSize=20, symbolSize=80, labelFontSize=20}},
     resolve = {scale={y=:independent}}
-) |> save(joinpath(@__DIR__, "../results/damages_ineq/", string("FigB8.png")))
+) |> save(joinpath(@__DIR__, "../results/damages_ineq/", string("FigB8_update.png")))

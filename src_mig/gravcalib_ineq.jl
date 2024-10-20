@@ -17,7 +17,7 @@ deleteat!(datagini,1)
 gini_hist = stack(datagini[:,4:end], 2:61)
 rename!(gini_hist, Symbol("Country Code")=>:country, :variable => :year, :value=>:gini)
 gini_hist[!,:year] = map(x->parse(Int,SubString(String(x), 1:4)), gini_hist[:,:year])
-gini_hist[!,:gini] = [typeof(gini_hist[i,:gini]) == Float64 ? gini_hist[i,:gini] : missing for i in 1:size(gini_hist,1)]
+gini_hist[!,:gini] = [typeof(gini_hist[i,:gini]) == Float64 ? gini_hist[i,:gini] : missing for i in eachindex(gini_hist[:,1])]
 # In order to have enough data for gravres, attribute for Australia the Gini of 2001 to 2000, and of 2004 to 2005
 ind0 = intersect(findall(gini_hist[:,:year].==2000),findall(gini_hist[:,:country].=="AUS"))
 ind1 = intersect(findall(gini_hist[:,:year].==2001),findall(gini_hist[:,:country].=="AUS"))
@@ -37,14 +37,14 @@ gravity_ineq_abel[!,:gini_ratio] = gravity_ineq_abel[:,:gini_dest] ./ gravity_in
 for name in [:gini_orig,:gini_dest]
     gravity_ineq[!,name] = gravity_ineq[:,name] ./ 100
     gravity_ineq_abel[!,name] = gravity_ineq_abel[:,name] ./ 100
-    gravity_ineq[!,Symbol(:log,name)] = [log(gravity_ineq[i,name]/100) for i in 1:size(gravity_ineq, 1)]
-    gravity_ineq_abel[!,Symbol(:log,name)] = [log(gravity_ineq_abel[i,name]/100) for i in 1:size(gravity_ineq_abel, 1)]
+    gravity_ineq[!,Symbol(:log,name)] = [log(gravity_ineq[i,name]/100) for i in eachindex(gravity_ineq[:,1])]
+    gravity_ineq_abel[!,Symbol(:log,name)] = [log(gravity_ineq_abel[i,name]/100) for i in eachindex(gravity_ineq_abel[:,1])]
 end
 
 edu_bil = CSV.File(joinpath(@__DIR__,"../../../results/edu_bil.csv")) |> DataFrame
 
 edu_bil[!,:flow_quint_share] = edu_bil[:,:flow_quint] ./ edu_bil[:,:flow]
-for i in 1:size(edu_bil,1) ; if edu_bil[i,:flow_quint] == 0.0 && edu_bil[i,:flow] == 0.0 ; edu_bil[i,:flow_quint_share] = 0 end end
+for i in eachindex(edu_bil[:,1]) ; if edu_bil[i,:flow_quint] == 0.0 && edu_bil[i,:flow] == 0.0 ; edu_bil[i,:flow_quint_share] = 0 end end
 
 gravity_quint = innerjoin(gravity_ineq[.&(gravity_ineq[:,:year].==2010),:], edu_bil[:,union(1:2,4,6,7,9,11)], on = [:orig, :dest])
 gravity_quint[!,:flow_quint] = map(x->log(x),map(x->exp(x), gravity_quint[:,:flow_AzoseRaftery]) .* gravity_quint[:,:flow_quint_share])
@@ -287,7 +287,7 @@ gravity_ineq = CSV.File(joinpath(@__DIR__,"../results/gravity/gravity_ineq.csv")
 edu_bil_terc = CSV.File(joinpath(@__DIR__,"../../../results/edu_bil_terc.csv")) |> DataFrame
 
 edu_bil_terc[!,:flow_terc_share] = edu_bil_terc[:,:flow_terc] ./ edu_bil_terc[:,:flow]
-for i in 1:size(edu_bil_terc,1) ; if edu_bil_terc[i,:flow_terc] == 0.0 && edu_bil_terc[i,:flow] == 0.0 ; edu_bil_terc[i,:flow_terc_share] = 0 end end
+for i in eachindex(edu_bil_terc[:,1]) ; if edu_bil_terc[i,:flow_terc] == 0.0 && edu_bil_terc[i,:flow] == 0.0 ; edu_bil_terc[i,:flow_terc_share] = 0 end end
 
 gravity_terc = innerjoin(gravity_ineq[.&(gravity_ineq[:,:year].==2010),:], edu_bil_terc[:,union(1:2,4,6,7,9,11)], on = [:orig, :dest])
 gravity_terc[!,:flow_terc] = map(x->log(x),map(x->exp(x), gravity_terc[:,:flow_AzoseRaftery]) .* gravity_terc[:,:flow_terc_share])
@@ -339,7 +339,7 @@ rho = CSV.read(joinpath(@__DIR__, "../input_data/rho.csv"), DataFrame)
 phi = CSV.read(joinpath(@__DIR__,"../input_data/phi.csv"), DataFrame)
 remittances = leftjoin(rho, phi, on = [:origin, :destination])
 # For corridors with no cost data, I assume that the cost of sending remittances is the mean of all available corridors
-for i in 1:size(remittances,1)
+for i in eachindex(remittances[:,1])
     if ismissing(remittances[i,:phi])
         remittances[i,:phi] = (remittances[i,:origin] == remittances[i,:destination] ? 0.0 : mean(phi[!,:phi]))
     end
@@ -351,9 +351,9 @@ gravity_17[!,:ypc_ratio] = gravity_17[!,:ypc_dest] ./ gravity_17[!,:ypc_orig]
 
 # log transformation
 for name in [:pop_orig, :pop_dest, :ypc_orig, :ypc_dest, :ypc_ratio]
-    gravity_17[!,name] = [log(gravity_17[i,name]) for i in 1:size(gravity_17, 1)]
+    gravity_17[!,name] = [log(gravity_17[i,name]) for i in eachindex(gravity_17[:,1])]
 end
-gravity_17[!,:log_remshare] = [log(gravity_17[i,:remshare]) for i in 1:size(gravity_17, 1)]
+gravity_17[!,:log_remshare] = [log(gravity_17[i,:remshare]) for i in eachindex(gravity_17[:,1])]
 
 r17anex1 = reg(gravity_17, @formula(remshare ~ ypc_orig + ypc_dest + remcost), Vcov.cluster(:orig, :dest), save=true)
 r17anex2 = reg(gravity_17, @formula(remshare ~ ypc_dest + ypc_ratio + remcost), Vcov.cluster(:orig, :dest), save=true)

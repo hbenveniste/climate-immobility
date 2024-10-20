@@ -96,7 +96,7 @@ gini_all |> @filter(_.year <= 2100 && _.year >= 2015) |> @vlplot(
     y = {"gini:q", title="Gini coefficient", axis={labelFontSize=20,titleFontSize=20}}, 
     color = {"scen:n", scale={scheme=:category10}, legend={title="Scenario",titleFontSize=20, symbolSize=80, labelFontSize=20}}, 
     shape = {"type_name:o",scale={range=["circle","triangle-up","square"],domain=["Original SSP","FUND + income dist.","FUND + income dist. + migration"]}, legend={title="Model type",titleFontSize=20, symbolSize=80, labelFontSize=16, labelLimit = 240}}
-) |> save(joinpath(@__DIR__, "../results/inequality/", string("FigB4.png")))
+) |> save(joinpath(@__DIR__, "../results/inequality/", string("FigB4_update.png")))
 
 
 gini_migNICEFUND_xi0 = vcat(
@@ -130,4 +130,4 @@ data_ssp = gini_xi_all |> @filter(_.year <= 2100 && _.year >= 2015) |> @vlplot(
     y = {"gini:q", title="Gini coefficient", axis={labelFontSize=20,titleFontSize=20}}, 
     color = {"scen:n", scale={scheme=:category10}, legend={title="Scenario",titleFontSize=20, symbolSize=80, labelFontSize=20}}, 
     shape = {"xi:o", scale={range=["circle","triangle-up","square"],domain=["proportional","independent","inversely prop."]}, legend={title="Damages elasticity",titleFontSize=20, titleLimit=260, symbolSize=80, labelFontSize=20}}
-) |> save(joinpath(@__DIR__, "../results/inequality/", string("FigB5.png")))
+) |> save(joinpath(@__DIR__, "../results/inequality/", string("FigB5_update.png")))
