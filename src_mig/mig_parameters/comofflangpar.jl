@@ -49,7 +49,7 @@ offlang = Dict(
     "Tswana" => ["ZAF","BWA"]
 )
 
-for i in 1:size(comol,1) ; if comol[i,:orig] == comol[i,:dest] ; comol[i,:comofflang] = 1 end end
+for i in eachindex(comol[:,1]) ; if comol[i,:orig] == comol[i,:dest] ; comol[i,:comofflang] = 1 end end
 for l in offlang
     for c1 in l[2]
         for c2 in l[2]
