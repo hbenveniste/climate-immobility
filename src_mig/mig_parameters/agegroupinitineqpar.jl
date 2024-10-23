@@ -1,8 +1,8 @@
-using CSV, DataFrames, Query, DelimitedFiles, FileIO
+using CSV, DataFrames, Query, DelimitedFiles, FileIO, XLSX
 
 
 regions = ["USA", "CAN", "WEU", "JPK", "ANZ", "EEU", "FSU", "MDE", "CAM", "LAM", "SAS", "SEA", "CHI", "MAF", "SSA", "SIS"]
-iso3c_fundregion = CSV.File("../input_data/iso3c_fundregion.csv") |> DataFrame
+iso3c_fundregion = CSV.File(joinpath(@__DIR__,"../../input_data/iso3c_fundregion.csv")) |> DataFrame
 
 # Computing the initial stock of migrants, and how it declines over time
 # We use bilateral migration stocks from 2017 from the World Bank
@@ -11,22 +11,27 @@ iso3c_fundregion = CSV.File("../input_data/iso3c_fundregion.csv") |> DataFrame
 # and the one of the overall destination population in the period 2015-2020 (based on SSP2)
 
 # Reading bilateral migrant stocks from 2017
-migstock_matrix = load(joinpath(@__DIR__, "../input_data/WB_Bilateral_Estimates_Migrant_Stocks_2017.xlsx"), "Bilateral_Migration_2017!A2:HJ219") |> DataFrame
+migstock_matrix = XLSX.readdata(joinpath(@__DIR__, "../../input_data/WB_Bilateral_Estimates_Migrant_Stocks_2017.xlsx"), "Bilateral_Migration_2017!A2:HJ219") 
+migstock_matrix = DataFrame(migstock_matrix, :auto)
+rename!(migstock_matrix, Symbol.(Vector(migstock_matrix[1,:])))
+deleteat!(migstock_matrix,1)
 countriesm = migstock_matrix[1:214,1]
 migstock = stack(migstock_matrix, 2:215)
 select!(migstock, Not([Symbol("Other North"), Symbol("Other South"), :World]))
-rename!(migstock, :x1 => :origin, :variable => :destination, :value => :stock)
-permutecols!(migstock, [3,1,2])
+rename!(migstock, :missing => :origin, :variable => :destination, :value => :stock)
 sort!(migstock, :origin)
 indregion = vcat(findall(migstock[!,:origin] .== "Other North"), findall(migstock[!,:origin] .== "Other South"), findall(migstock[!,:origin] .== "World"))
 delete!(migstock, indregion)
-indmissing = findall([typeof(migstock[!,:stock][i]) != Float64 for i in 1:size(migstock, 1)])
+indmissing = findall([ismissing(migstock[i,:stock]) for i in eachindex(migstock[:,1])])
 for i in indmissing ; migstock[!,:stock][i] = 0.0 end
 migstock[!,:stock] = map(x -> float(x), migstock[!,:stock])
 migstock[!,:destination] = map(x -> string(x), migstock[!,:destination])
 
 # Converting into country codes
-ccode = load(joinpath(@__DIR__,"../input_data/GDPpercap2017.xlsx"), "Data!A1:E218") |> DataFrame
+ccode = XLSX.readdata(joinpath(@__DIR__,"../../input_data/GDPpercap2017.xlsx"), "Data!A1:E218") 
+ccode = DataFrame(ccode, :auto)
+rename!(ccode, Symbol.(Vector(ccode[1,:])))
+deleteat!(ccode,1)
 select!(ccode, Not([Symbol("Series Code"), Symbol("Series Name"), Symbol("2017 [YR2017]")]))
 rename!(ccode, Symbol("Country Name") => :country, Symbol("Country Code") => :country_code)
 rename!(ccode, :country => :destination)
@@ -61,7 +66,7 @@ end
 
 # Add data on education and income profiles of migrants.
 # We use the profiles of 2015-2020 migrants in SSP for the migrant stocks (already there) at that time
-edu_quint = CSV.File(joinpath(@__DIR__,"../input_data/edu_quint.csv")) |> DataFrame
+edu_quint = CSV.File(joinpath(@__DIR__,"../../input_data/edu_quint_update.csv")) |> DataFrame
 
 migstock_edu = innerjoin(
     migstock, 
@@ -84,16 +89,17 @@ rename!(migstock_quint_reg, :x1 => :stock_quint)
 # Sorting the data
 regionsdf = DataFrame(origin = repeat(regions, inner = length(regions)), indexo = repeat(1:16, inner = length(regions)), destination = repeat(regions, outer = length(regions)), indexd = repeat(1:16, outer = length(regions)))
 migstock_quint_reg = outerjoin(migstock_quint_reg, regionsdf, on = [:origin, :destination])
-sort!(migstock_quint_reg, (:indexo, :indexd))
+sort!(migstock_quint_reg, [:indexo, :indexd])
 quintiles = DataFrame(name=unique(migstock_quint_reg[:,:quint_orig]),number=1:5)
 migstock_quint_reg = innerjoin(migstock_quint_reg, rename(quintiles, :name => :quint_orig, :number=>:quint_or), on=:quint_orig)
 migstock_quint_reg = innerjoin(migstock_quint_reg, rename(quintiles, :name => :quint_dest, :number=>:quint_de), on=:quint_dest)
 
-CSV.write("../data_mig_3d/migstockinit_ineq.csv", migstock_quint_reg[:,[:origin, :destination, :quint_or, :quint_de, :stock_quint]]; writeheader=false)
+
+CSV.write(joinpath(@__DIR__,"../../data_mig_3d/migstockinit_ineq_update.csv"), migstock_quint_reg[:,[:origin, :destination, :quint_or, :quint_de, :stock_quint]]; writeheader=false)
 
 
 ##################################################### Getting age distributions #################################################
-ssp = CSV.File(joinpath(@__DIR__, "../../../results/ssp.csv")) |> DataFrame
+ssp = CSV.File("C:/Users/hmrb/Stanford_Benveniste Dropbox/Hélène Benveniste/migration-exposure-immobility/results_large/ssp_update.csv") |> DataFrame
 
 sspageedu = combine(d->(pop=sum(d.pop),outmig=sum(d.outmig),inmig=sum(d.inmig)), groupby(ssp, [:age,:edu,:region,:period,:scen]))
 agedist = @from i in sspageedu begin
@@ -107,15 +113,15 @@ agedist[!,:pop_share] = agedist[:,:pop] ./ agedist[:,:pop_all]
 agedist[!,:outmig_share] = agedist[:,:outmig] ./ agedist[:,:outmig_all]
 agedist[!,:inmig_share] = agedist[:,:inmig] ./ agedist[:,:inmig_all]
 for name in [:pop,:inmig,:outmig] 
-    for i in 1:size(agedist,1) 
+    for i in eachindex(agedist[:,1]) 
         if agedist[i,name] == 0.0 && agedist[i,Symbol(name,Symbol("_all"))] == 0.0 
             agedist[i,Symbol(name,Symbol("_share"))] = 0.0
         end
     end
 end
 
-agedist[!,:countrynum] = map(x->parse(Int,SubString(x,3)), agedist[:,:region])
-iso3c_isonum = CSV.File(joinpath(@__DIR__,"../input_data/iso3c_isonum.csv")) |> DataFrame
+rename!(agedist, :region => :countrynum)
+iso3c_isonum = CSV.File(joinpath(@__DIR__,"../../input_data/iso3c_isonum.csv")) |> DataFrame
 agedist = innerjoin(agedist, rename(iso3c_isonum, :iso3c=>:country, :isonum=>:countrynum), on = :countrynum)
 sort!(agedist, [:country, :age, :edu])
 countries=unique(agedist[:,:country])
@@ -125,7 +131,7 @@ countries=unique(agedist[:,:country])
 for name in [:q1,:q2,:q3,:q4,:q5]
     agedist[!,name] = zeros(size(agedist,1))
 end
-for i in 1:size(agedist,1)
+for i in eachindex(agedist[:,1])
     if agedist[i,:edu] == "e1"
         agedist[i,:q1] = min(0.2,agedist[i,:pop_share])
         agedist[i,:q2] = min(0.2,max(agedist[i,:pop_share]-0.2,0.0))
@@ -166,11 +172,14 @@ for i in 1:size(agedist,1)
 end
 
 # We then assume that migrants' income profile per education level is the same as the general population
-age_cross = stack(agedist,15:19)
+age_cross = stack(agedist,[:q1,:q2,:q3,:q4,:q5])
 rename!(age_cross, :variable=>:quintile, :value=>:pop_quintile)
 sort!(age_cross, [:country,:edu,:quintile,:age])
 age_cross[!,:outmig_quintile] = age_cross[:,:pop_quintile] ./ age_cross[:,:pop_share] .* age_cross[:,:outmig_share]
 age_cross[!,:inmig_quintile] = age_cross[:,:pop_quintile] ./ age_cross[:,:pop_share] .* age_cross[:,:inmig_share]
+
+replace!(age_cross.outmig_quintile, NaN => 0.0)
+replace!(age_cross.inmig_quintile, NaN => 0.0)
 
 age_quint = combine(d->(pop_quint=sum(d.pop_quintile),outmig_quint=sum(d.outmig_quintile),inmig_quint=sum(d.inmig_quintile)), groupby(age_cross,[:country,:quintile,:age]))
 
@@ -230,4 +239,5 @@ for o in 0:length(regions)-1
     end
 end
 
-CSV.write("../data_mig_3d/agegroupinit_ineq.csv", migstock_quint_all[:,[:origin, :destination, :quint_or, :quint_de, :ageall,:stock_age_reg]]; writeheader=false)
+
+CSV.write(joinpath(@__DIR__,"../../data_mig_3d/agegroupinit_ineq_update.csv"), migstock_quint_all[:,[:origin, :destination, :quint_or, :quint_de, :ageall,:stock_age_reg]]; writeheader=false)

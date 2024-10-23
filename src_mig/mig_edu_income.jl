@@ -17,11 +17,11 @@ regions_fullname = DataFrame(
 
 
 ################## Prepare population data: original SSP ####################
-ssp1 = CSV.File("C:/Users/Helene/Stanford_Benveniste Dropbox/Hélène Benveniste/YSSP-IIASA/Samir_data/SSP1.csv") |> DataFrame
-ssp2 = CSV.File("C:/Users/Helene/Stanford_Benveniste Dropbox/Hélène Benveniste/YSSP-IIASA/Samir_data/SSP2.csv") |> DataFrame
-ssp3 = CSV.File("C:/Users/Helene/Stanford_Benveniste Dropbox/Hélène Benveniste/YSSP-IIASA/Samir_data/SSP3.csv") |> DataFrame
-ssp4 = CSV.File("C:/Users/Helene/Stanford_Benveniste Dropbox/Hélène Benveniste/YSSP-IIASA/Samir_data/SSP4.csv") |> DataFrame
-ssp5 = CSV.File("C:/Users/Helene/Stanford_Benveniste Dropbox/Hélène Benveniste/YSSP-IIASA/Samir_data/SSP5.csv") |> DataFrame
+ssp1 = CSV.File("C:/Users/hmrb/Stanford_Benveniste Dropbox/Hélène Benveniste/YSSP-IIASA/Samir_data/SSP1.csv") |> DataFrame
+ssp2 = CSV.File("C:/Users/hmrb/Stanford_Benveniste Dropbox/Hélène Benveniste/YSSP-IIASA/Samir_data/SSP2.csv") |> DataFrame
+ssp3 = CSV.File("C:/Users/hmrb/Stanford_Benveniste Dropbox/Hélène Benveniste/YSSP-IIASA/Samir_data/SSP3.csv") |> DataFrame
+ssp4 = CSV.File("C:/Users/hmrb/Stanford_Benveniste Dropbox/Hélène Benveniste/YSSP-IIASA/Samir_data/SSP4.csv") |> DataFrame
+ssp5 = CSV.File("C:/Users/hmrb/Stanford_Benveniste Dropbox/Hélène Benveniste/YSSP-IIASA/Samir_data/SSP5.csv") |> DataFrame
 
 select!(ssp1, Not(:Column1))
 select!(ssp2, Not(:Column1))
@@ -53,11 +53,11 @@ end
 # Source:  K.C., S., Lutz, W. , Potančoková, M. , Abel, G. , Barakat, B., Eder, J., Goujon, A. , Jurasszovich, S., et al. (2020). 
 # Global population and human capital projections for Shared Socioeconomic Pathways – 2015 to 2100, Revision-2018. 
 # https://pure.iiasa.ac.at/id/eprint/17550/
-ssp1_update = CSV.read("C:/Users/Helene/Stanford_Benveniste Dropbox/Hélène Benveniste/YSSP-IIASA/Samir_data/SSP1_2018update.csv", DataFrame)
-ssp2_update = CSV.read("C:/Users/Helene/Stanford_Benveniste Dropbox/Hélène Benveniste/YSSP-IIASA/Samir_data/SSP2_2018update.csv", DataFrame)
-ssp3_update = CSV.read("C:/Users/Helene/Stanford_Benveniste Dropbox/Hélène Benveniste/YSSP-IIASA/Samir_data/SSP3_2018update.csv", DataFrame)
-ssp4_update = CSV.read("C:/Users/Helene/Stanford_Benveniste Dropbox/Hélène Benveniste/YSSP-IIASA/Samir_data/SSP4_2018update.csv", DataFrame)
-ssp5_update = CSV.read("C:/Users/Helene/Stanford_Benveniste Dropbox/Hélène Benveniste/YSSP-IIASA/Samir_data/SSP5_2018update.csv", DataFrame)
+ssp1_update = CSV.read("C:/Users/hmrb/Stanford_Benveniste Dropbox/Hélène Benveniste/YSSP-IIASA/Samir_data/SSP1_2018update.csv", DataFrame)
+ssp2_update = CSV.read("C:/Users/hmrb/Stanford_Benveniste Dropbox/Hélène Benveniste/YSSP-IIASA/Samir_data/SSP2_2018update.csv", DataFrame)
+ssp3_update = CSV.read("C:/Users/hmrb/Stanford_Benveniste Dropbox/Hélène Benveniste/YSSP-IIASA/Samir_data/SSP3_2018update.csv", DataFrame)
+ssp4_update = CSV.read("C:/Users/hmrb/Stanford_Benveniste Dropbox/Hélène Benveniste/YSSP-IIASA/Samir_data/SSP4_2018update.csv", DataFrame)
+ssp5_update = CSV.read("C:/Users/hmrb/Stanford_Benveniste Dropbox/Hélène Benveniste/YSSP-IIASA/Samir_data/SSP5_2018update.csv", DataFrame)
 
 ssp1_update.scen = repeat(["SSP1"], size(ssp1_update,1))
 ssp2_update.scen = repeat(["SSP2"], size(ssp2_update,1))
@@ -122,7 +122,7 @@ replace!(ssp.outmig_update, NaN => 0.0)
 select!(ssp, Not([:pop,:outmig,:inmig]))
 rename!(ssp, :pop_update => :pop, :inmig_update => :inmig, :outmig_update => :outmig)
 
-CSV.write("C:/Users/Helene/Stanford_Benveniste Dropbox/Hélène Benveniste/migration-exposure-immobility/results_large/ssp_update.csv", ssp)
+CSV.write("C:/Users/hmrb/Stanford_Benveniste Dropbox/Hélène Benveniste/migration-exposure-immobility/results_large/ssp_update.csv", ssp)
 
 
 ################################################### Calculate education levels of migrants #########################################
@@ -238,7 +238,7 @@ edu_quint = combine(d->(pop_quint=sum(d.pop_quintile),outmig_quint=sum(d.outmig_
 
 ######################################### Analyse outmigration as a function of emigrants' income ##################################
 # Prepare population data from the Wittgenstein Centre, based on historical data from the WPP 2019. We use data for 2010.
-pop_allvariants = CSV.File("C:/Users/Helene/Stanford_Benveniste Dropbox/Hélène Benveniste/migration-exposure-immobility/data_large/WPP2019.csv") |> DataFrame
+pop_allvariants = CSV.File("C:/Users/hmrb/Stanford_Benveniste Dropbox/Hélène Benveniste/migration-exposure-immobility/data_large/WPP2019.csv") |> DataFrame
 # We use the Medium variant, the most commonly used. Unit: thousands
 pop = @from i in pop_allvariants begin
     @where i.Variant == "Medium" && i.Time == 2010 
@@ -273,7 +273,7 @@ p = range(0, step=0.2, stop=1)          # here we use income quintiles
 for q in 1:length(p)-1
     gini[!,Symbol(string("q", q))] = [cdf.(Normal(), quantile.(Normal(), p[q+1]) .- sqrt(2) .* quantile.(Normal(), (gini[!,:gini][i] + 1)/2)) - cdf.(Normal(), quantile.(Normal(), p[q]) .- sqrt(2) .* quantile.(Normal(), (gini[!,:gini][i] + 1)/2)) for i in eachindex(gini[:,1])]
 end
-gini_stack = stack(gini,5:9)
+gini_stack = stack(gini,[:q1,:q2,:q3,:q4,:q5])
 rename!(gini_stack, :variable=>:quintile,:value=>:gdpshare_quint)
 
 # Join data on Gini for 2010 (same for all SSP)
@@ -304,7 +304,7 @@ edu_quint_reg = innerjoin(edu_quint_reg,edu_reg,on=:regionname)
 edu_quint_reg[:,:outmig_quint_reg] = edu_quint_reg[:,:outmig_reg] ./ edu_quint_reg[:,:outmig_tot]
 edu_quint_reg[:,:inmig_quint_reg] = edu_quint_reg[:,:inmig_reg] ./ edu_quint_reg[:,:inmig_tot]
 
-edu_stack = stack(edu_quint_reg[:,union(1:2,7:8)],3:4)
+edu_stack = stack(edu_quint_reg[:,[:quintile,:regionname,:outmig_quint_reg,:inmig_quint_reg]],[:outmig_quint_reg,:inmig_quint_reg])
 rename!(edu_stack, :variable=>:migtype, :value=>:migshare)
 edu_stack[:,:migtype] = map(x->SubString(String(x),1:6),edu_stack[:,:migtype])
 
@@ -318,30 +318,30 @@ edu_stack |> @vlplot(
 
 
 ####################################### Attribute income levels to bilateral migrant flows ########################################
-edu_quint = CSV.File(joinpath(@__DIR__,"../input_data/edu_quint.csv")) |> DataFrame
+edu_quint = CSV.File(joinpath(@__DIR__,"../input_data/edu_quint_update.csv")) |> DataFrame
 migflow_alldata = CSV.File(joinpath(@__DIR__, "../input_data/ac19.csv")) |> DataFrame          # Use Abel and Cohen (2019)
 # From Abel and Cohen's paper, we choose Azose and Raftery's data:based a demographic accounting, pseudo-Bayesian method, which performs the best
 migflow_ar = migflow_alldata[:,[:year0, :orig, :dest, :da_pb_closed]]
 
 edu_bil = innerjoin(
-    rename(migflow_ar[(migflow_ar[:,:year0].==2010),Not(1)],:da_pb_closed=>:flow), 
-    rename(edu_quint[:,union(1:2,4,10)],:country=>:orig,:quintile=>:quint_orig,:ypc_quint=>:ypc_quint_orig),
+    rename(migflow_ar[(migflow_ar[:,:year0].==2010),Not(:year0)],:da_pb_closed=>:flow), 
+    rename(edu_quint[:,[:country,:quintile,:outmig_quint,:ypc_quint]],:country=>:orig,:quintile=>:quint_orig,:ypc_quint=>:ypc_quint_orig),
     on=:orig
 )
 edu_bil = innerjoin(
     edu_bil, 
-    rename(edu_quint[:,union(1:2,5,10)],:country=>:dest,:quintile=>:quint_dest,:ypc_quint=>:ypc_quint_dest),
+    rename(edu_quint[:,[:country,:quintile,:inmig_quint,:ypc_quint]],:country=>:dest,:quintile=>:quint_dest,:ypc_quint=>:ypc_quint_dest),
     on=:dest
 )
 
 # Strong assumption: the distribution of emigrants/immigrants among quintile levels is the same for all destinations/origins
 edu_bil[!,:flow_quint] = edu_bil[:,:flow] .* edu_bil[:,:outmig_quint] .* edu_bil[:,:inmig_quint]
 
-CSV.write("C:/Users/Helene/Stanford_Benveniste Dropbox/Hélène Benveniste/migration-exposure-immobility/results_large/edu_bil_update.csv",edu_bil)
+CSV.write("C:/Users/hmrb/Stanford_Benveniste Dropbox/Hélène Benveniste/migration-exposure-immobility/results_large/edu_bil_update.csv",edu_bil)
 
 
 ############################################# Calculate income terciles of migrants #######################################
-ssp_edu = CSV.File(joinpath(@__DIR__, "../input_data/ssp_edu.csv")) |> DataFrame
+ssp_edu = CSV.File(joinpath(@__DIR__, "../input_data/ssp_edu_update.csv")) |> DataFrame
 
 edu_level = sort(
     combine(
@@ -352,14 +352,14 @@ edu_level = sort(
         )
     ),[:period,:region,:edu]
 )
-edu_level[!,:countrynum] = map(x->parse(Int,SubString(x,3)), edu_level[:,:region])
+rename!(edu_level, :region => :countrynum)
 edu_level = innerjoin(edu_level, rename(iso3c_isonum, :iso3c=>:country, :isonum=>:countrynum), on = :countrynum)
 sort!(edu_level, [:country, :edu])
 
 for name in [:t1,:t2,:t3]
     edu_level[!,name] = zeros(size(edu_level,1))
 end
-for i in eachindex(edu_level[:1])
+for i in eachindex(edu_level[:,1])
     if edu_level[i,:edu] == "e1"
         edu_level[i,:t1] = min(1/3,edu_level[i,:pop_share])
         edu_level[i,:t2] = min(1/3,max(edu_level[i,:pop_share]-1/3,0.0))
@@ -387,29 +387,15 @@ for i in eachindex(edu_level[:1])
     end
 end
 
-edu_cross = stack(edu_level,12:14)
+edu_cross = stack(edu_level,[:t1,:t2,:t3])
 rename!(edu_cross, :variable=>:tercile, :value=>:pop_tercile)
 sort!(edu_cross, [:country,:edu,:tercile])
 edu_cross[!,:outmig_tercile] = edu_cross[:,:pop_tercile] ./ edu_cross[:,:pop_share] .* edu_cross[:,:outmig_share]
 edu_cross[!,:inmig_tercile] = edu_cross[:,:pop_tercile] ./ edu_cross[:,:pop_share] .* edu_cross[:,:inmig_share]
+replace!(edu_cross.outmig_tercile, NaN => 0.0)
+replace!(edu_cross.inmig_tercile, NaN => 0.0)
 
 edu_terc = combine(d->(pop_terc=sum(d.pop_tercile),outmig_terc=sum(d.outmig_tercile),inmig_terc=sum(d.inmig_tercile)), groupby(edu_cross,[:country,:tercile]))
-
-pop_allvariants = CSV.File(joinpath(@__DIR__, "../input_data/WPP2019.csv")) |> DataFrame
-pop = @from i in pop_allvariants begin
-    @where i.Variant == "Medium" && i.Time == 2010 
-    @select {i.LocID, i.Location, i.PopTotal}
-    @collect DataFrame
-end
-pop = innerjoin(pop, rename(iso3c_isonum,:iso3c=>:country,:isonum=>:LocID), on=:LocID)
-
-gdp_unstacked = XLSX.openxlsx(joinpath(@__DIR__, "../input_data/gdphist.xlsx")) do xf
-    DataFrame(XLSX.gettable(xf["data"];first_row=2)...)
-end
-select!(gdp_unstacked, Not([:Model, Symbol("Scenario (History)"), :Variable, :Unit]))
-gdp = stack(gdp_unstacked, 2:size(gdp_unstacked, 2))
-rename!(gdp, :variable => :year0, :value => :gdp)
-gdp[!,:year0] = map( x -> parse(Int, String(x)), gdp[!,:year0])
 
 edu_terc = innerjoin(edu_terc, rename(pop, :PopTotal=>:pop)[:,3:4], on=:country)
 edu_terc = innerjoin(edu_terc, rename(gdp[(gdp[:,:year0].==2010),:],:Region=>:country), on = :country)
@@ -417,32 +403,30 @@ edu_terc = innerjoin(edu_terc, rename(gdp[(gdp[:,:year0].==2010),:],:Region=>:co
 gini = CSV.File(joinpath(@__DIR__, "../../../../YSSP-IIASA/data/gini_rao/ssp_ginis.csv")) |> DataFrame
 p = range(0, step=1/3, stop=1)     
 for t in 1:length(p)-1
-    gini[!,Symbol(string("t", t))] = [cdf.(Normal(), quantile.(Normal(), p[t+1]) .- sqrt(2) .* quantile.(Normal(), (gini[!,:gini][i] + 1)/2)) - cdf.(Normal(), quantile.(Normal(), p[t]) .- sqrt(2) .* quantile.(Normal(), (gini[!,:gini][i] + 1)/2)) for i in eachindex(gini[:1])]
+    gini[!,Symbol(string("t", t))] = [cdf.(Normal(), quantile.(Normal(), p[t+1]) .- sqrt(2) .* quantile.(Normal(), (gini[!,:gini][i] + 1)/2)) - cdf.(Normal(), quantile.(Normal(), p[t]) .- sqrt(2) .* quantile.(Normal(), (gini[!,:gini][i] + 1)/2)) for i in eachindex(gini[:,1])]
 end
-gini_stack = stack(gini,5:7)
-rename!(gini_stack, :variable=>:tercile,:value=>:gdpshare_terc)
+gini_stack_terc = stack(gini[!,Not([:q1,:q2,:q3,:q4,:q5])],[:t1,:t2,:t3])
+rename!(gini_stack_terc, :variable=>:tercile,:value=>:gdpshare_terc)
 
-edu_terc = innerjoin(edu_terc, rename(gini_stack[.&(gini_stack[:,:year].==2010,gini_stack[:,:scenario].=="SSP2"),:],:iso=>:country)[:,union(2,5:6)], on=[:country,:tercile])
+edu_terc = innerjoin(edu_terc, rename(gini_stack_terc[.&(gini_stack_terc[:,:year].==2010,gini_stack_terc[:,:scenario].=="SSP2"),:],:iso=>:country)[:,[:country,:tercile,:gdpshare_terc]], on=[:country,:tercile])
 
 edu_terc[!,:ypc_terc] = edu_terc[:,:gdp] .* 10^9 .* edu_terc[:,:gdpshare_terc] ./ (edu_terc[:,:pop] .* 1000 ./ 5)
 edu_terc[!,:ypc_rel] = edu_terc[:,:ypc_terc] ./ (edu_terc[:,:gdp] .* 10^9 ./ (edu_terc[:,:pop] .* 1000))
 
 CSV.write(joinpath(@__DIR__,"../input_data/edu_terc_update.csv"),edu_terc)
 
-migflow_alldata = CSV.File(joinpath(@__DIR__, "../input_data/ac19.csv")) |> DataFrame
-migflow_ar = migflow_alldata[:,[:year0, :orig, :dest, :da_pb_closed]]
 
 edu_bil_terc = innerjoin(
-    rename(migflow_ar[(migflow_ar[:,:year0].==2010),Not(1)],:da_pb_closed=>:flow), 
-    rename(edu_terc[:,union(1:2,4,10)],:country=>:orig,:tercile=>:terc_orig,:ypc_terc=>:ypc_terc_orig),
+    rename(migflow_ar[(migflow_ar[:,:year0].==2010),Not(:year0)],:da_pb_closed=>:flow), 
+    rename(edu_terc[:,[:country,:tercile,:outmig_terc,:ypc_terc]],:country=>:orig,:tercile=>:terc_orig,:ypc_terc=>:ypc_terc_orig),
     on=:orig
 )
 edu_bil_terc = innerjoin(
     edu_bil_terc, 
-    rename(edu_terc[:,union(1:2,5,10)],:country=>:dest,:tercile=>:terc_dest,:ypc_terc=>:ypc_terc_dest),
+    rename(edu_terc[:,[:country,:tercile,:inmig_terc,:ypc_terc]],:country=>:dest,:tercile=>:terc_dest,:ypc_terc=>:ypc_terc_dest),
     on=:dest
 )
 
 edu_bil_terc[!,:flow_terc] = edu_bil_terc[:,:flow] .* edu_bil_terc[:,:outmig_terc] .* edu_bil_terc[:,:inmig_terc]
 
-CSV.write("C:/Users/Helene/Stanford_Benveniste Dropbox/Hélène Benveniste/migration-exposure-immobility/results_large/edu_bil_terc_update.csv",edu_bil_terc)
+CSV.write("C:/Users/hmrb/Stanford_Benveniste Dropbox/Hélène Benveniste/migration-exposure-immobility/results_large/edu_bil_terc_update.csv",edu_bil_terc)
