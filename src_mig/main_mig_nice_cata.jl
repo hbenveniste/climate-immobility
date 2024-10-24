@@ -62,8 +62,8 @@ function getmigrationnicecatamodel(;datamigdir=path_datamigdir,scen="SSP2",migye
     set_param!(m, :migration, :migdeathrisk, param_mig[:migdeathrisk])
     set_param!(m, :migration, :ageshare, param_mig_3["ageshare_ineq_update"])
     set_param!(m, :migration, :agegroupinit, param_mig_3["agegroupinit_ineq_update"])
-    set_param!(m, :migration, :remres, param_mig[:remres])
-    set_param!(m, :migration, :remcost, param_mig[:remcost])
+    set_param!(m, :migration, :remres, param_mig[:remres_update])
+    set_param!(m, :migration, :remcost, param_mig[:remcost_update])
     set_param!(m, :migration, :comofflang, param_mig[:comofflang])
     set_param!(m, :migration, :policy, param_mig[:policy])
     set_param!(m, :migration, :migstockinit, param_mig_3["migstockinit_ineq_update"])
@@ -150,7 +150,6 @@ function getmigrationnicecatamodel(;datamigdir=path_datamigdir,scen="SSP2",migye
 
     # mig socioeconomic component connections to migration component
     connect_param!(m, :socioeconomic, :transfer, :migration, :remittances)
-    connect_param!(m, :socioeconomic, :otherconsloss, :migration, :deadmigcost)
     connect_param!(m, :socioeconomic, :entermig, :migration, :entermig)
     connect_param!(m, :socioeconomic, :leavemig, :migration, :leavemig)
     connect_param!(m, :socioeconomic, :deadmig, :migration, :deadmig)

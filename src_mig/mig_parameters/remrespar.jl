@@ -67,12 +67,12 @@ data_resweight = innerjoin(data_resweight, rename(iso3c_fundregion, :iso3c=>:ori
 data_resweight = innerjoin(data_resweight, rename(iso3c_fundregion, :iso3c=>:dest,:fundregion=>:destinationregion),on=:dest)
 
 # Calculate appropriate weights for exp(residuals)
-data_resweight_calc = by(data_resweight, [:originregion,:destinationregion], d -> (pop_orig_reg = sum(d.pop_orig),gdp_orig_reg=sum(d.gdp_orig),pop_dest_reg = sum(d.pop_dest),gdp_dest_reg=sum(d.gdp_dest),migstock_reg=sum(d.migrantstocks)))
-data_resweight = join(data_resweight, data_resweight_calc, on=[:originregion,:destinationregion])
-data_resweight[!,:ypc_mig] = [max((data_resweight[i,:ypc_orig] + data_resweight[i,:ypc_dest])/2,data_resweight[i,:ypc_orig]) for i in 1:size(data_resweight,1)]
-data_resweight[!,:ypc_mig_reg] = [max((data_resweight[i,:gdp_orig_reg]/data_resweight[i,:pop_orig_reg] + data_resweight[i,:gdp_dest_reg]/data_resweight[i,:pop_dest_reg])/2,data_resweight[i,:gdp_orig_reg]/data_resweight[i,:pop_orig_reg]) for i in 1:size(data_resweight,1)]
-data_resweight[!,:res_weight] = data_resweight[:,:migrantstocks] ./ data_resweight[:,:migstock_reg] .* data_resweight[:,:ypc_mig] ./ data_resweight[:,:ypc_mig_reg]
-for i in 1:size(data_resweight,1)
+data_resweight_calc = combine(groupby(data_resweight, [:originregion,:destinationregion]), d -> (pop_orig_reg = sum(d.pop_orig),gdp_orig_reg=sum(d.gdp_orig),pop_dest_reg = sum(d.pop_dest),gdp_dest_reg=sum(d.gdp_dest),migstock_reg=sum(d.migrantstock)))
+data_resweight = innerjoin(data_resweight, data_resweight_calc, on=[:originregion,:destinationregion])
+data_resweight[!,:ypc_mig] = [max((data_resweight[i,:ypc_orig] + data_resweight[i,:ypc_dest])/2,data_resweight[i,:ypc_orig]) for i in eachindex(data_resweight[:,1])]
+data_resweight[!,:ypc_mig_reg] = [max((data_resweight[i,:gdp_orig_reg]/data_resweight[i,:pop_orig_reg] + data_resweight[i,:gdp_dest_reg]/data_resweight[i,:pop_dest_reg])/2,data_resweight[i,:gdp_orig_reg]/data_resweight[i,:pop_orig_reg]) for i in eachindex(data_resweight[:,1])]
+data_resweight[!,:res_weight] = data_resweight[:,:migrantstock] ./ data_resweight[:,:migstock_reg] .* data_resweight[:,:ypc_mig] ./ data_resweight[:,:ypc_mig_reg]
+for i in eachindex(data_resweight[:,1])
     if data_resweight[i,:migstock_reg] == 0.0
         data_resweight[i,:res_weight] = 0.0
     end
@@ -81,11 +81,11 @@ end
 data_resweight[!,:exp_res_weighted] = map(x -> exp(x),data_resweight[:,:residual_ratio]) .* data_resweight[:,:res_weight]
 
 # Prepare remshare estimation at FUND region level
-data_resweight_fund = by(data_resweight, [:originregion,:destinationregion], d -> sum(d.exp_res_weighted))
+data_resweight_fund = combine(groupby(data_resweight, [:originregion,:destinationregion]), d -> sum(d.exp_res_weighted))
 rename!(data_resweight_fund, :x1 => :remres)
 
 # Sorting the data
-data_resweight_fund = join(data_resweight_fund, regionsdf, on = [:originregion, :destinationregion])
-sort!(data_resweight_fund, (:indexo, :indexd))
-delete!(data_resweight_fund, [:indexo, :indexd])
-CSV.write("../data_mig/remres.csv", data_resweight_fund; writeheader=false)
+data_resweight_fund = innerjoin(data_resweight_fund, regionsdf, on = [:originregion, :destinationregion])
+sort!(data_resweight_fund, [:indexo, :indexd])
+select!(data_resweight_fund, [:originregion, :destinationregion, :remres])
+CSV.write(joinpath(@__DIR__,"../../data_mig/remres_update.csv"), data_resweight_fund; writeheader=false)

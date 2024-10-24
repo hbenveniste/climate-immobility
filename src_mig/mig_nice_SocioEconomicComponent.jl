@@ -40,7 +40,6 @@ using Mimi, Distributions
     eloss               = Parameter(index=[time,regions])
     sloss               = Parameter(index=[time,regions])
     mitigationcost      = Parameter(index=[time,regions])
-    otherconsloss       = Parameter(index=[time,regions])
     area                = Parameter(index=[time,regions])
     population          = Parameter(index=[time,regions])
     populationin1       = Parameter(index=[time,regions])

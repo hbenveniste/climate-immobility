@@ -1,7 +1,7 @@
 using DelimitedFiles, CSV, VegaLite, FileIO, VegaDatasets, FilePaths
 using Statistics, DataFrames, Query, Distributions
 
-using MimiFUND
+using Mimi, MimiFUND
 
 include("main_mig_nice.jl")
 
@@ -14,6 +14,7 @@ world110m = dataset("world-110m")
 isonum_fundregion = CSV.read(joinpath(@__DIR__,"../input_data/isonum_fundregion.csv"),DataFrame)
 
 # Run models
+# Damages within a given region proportional to income (xi=1)
 m_nice_ssp1_nomig = getmigrationnicemodel(scen="SSP1",migyesno="nomig",xi=1.0,omega=1.0)
 m_nice_ssp2_nomig = getmigrationnicemodel(scen="SSP2",migyesno="nomig",xi=1.0,omega=1.0)
 m_nice_ssp3_nomig = getmigrationnicemodel(scen="SSP3",migyesno="nomig",xi=1.0,omega=1.0)
