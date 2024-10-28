@@ -70,6 +70,9 @@ m_nice_ssp2_orig_xim1 = getmigrationnicemodel(scen="SSP2",migyesno="mig",xi=-1.0
 run(m_nice_ssp2_orig_xim1;ntimesteps=151)
 
 # Compare to without climate change
+m_fund = getfund()
+run(m_fund)
+
 # Damages proportional to income
 m_nice_ssp2_orig_nocc = getmigrationnicemodel(scen="SSP2",migyesno="mig",xi=1.0,omega=1.0)
 set_param!(m_nice_ssp2_orig_nocc,:runwithoutdamage, true)
@@ -94,12 +97,12 @@ migration_quint_orig = DataFrame(
     quintile = repeat(1:5, inner=length(years)*length(regions))
 )
 
-migration_quint_orig[:,:leave_quint_xi1] = collect(Iterators.flatten(m_nice_ssp2_nomig[:migration,:leavemig][MimiFUND.getindexfromyear(1951):MimiFUND.getindexfromyear(2100),:,:]))
-migration_quint_orig[:,:leave_quint_xi0] = collect(Iterators.flatten(m_nice_ssp2_nomig_xi0[:migration,:leavemig][MimiFUND.getindexfromyear(1951):MimiFUND.getindexfromyear(2100),:,:]))
-migration_quint_orig[:,:leave_quint_xim1] = collect(Iterators.flatten(m_nice_ssp2_nomig_xim1[:migration,:leavemig][MimiFUND.getindexfromyear(1951):MimiFUND.getindexfromyear(2100),:,:]))
+migration_quint_orig[:,:leave_quint_xi1] = collect(Iterators.flatten(m_nice_ssp2_orig[:migration,:leavemig][MimiFUND.getindexfromyear(1951):MimiFUND.getindexfromyear(2100),:,:]))
+migration_quint_orig[:,:leave_quint_xi0] = collect(Iterators.flatten(m_nice_ssp2_orig_xi0[:migration,:leavemig][MimiFUND.getindexfromyear(1951):MimiFUND.getindexfromyear(2100),:,:]))
+migration_quint_orig[:,:leave_quint_xim1] = collect(Iterators.flatten(m_nice_ssp2_orig_xim1[:migration,:leavemig][MimiFUND.getindexfromyear(1951):MimiFUND.getindexfromyear(2100),:,:]))
 
 # Look at emigrants without residual from gravity (residual same for all SSP, xi, CC or not)
-migration_quint_orig[!,:leave_quint_gravres] = repeat(collect(Iterators.flatten(sum(m_nice_ssp2_nomig[:migration,:gravres_qi],dims=[2,4])[:,1,:,1])),inner=length(1951:2100))
+migration_quint_orig[!,:leave_quint_gravres] = repeat(collect(Iterators.flatten(sum(m_nice_ssp2_orig[:migration,:gravres_qi],dims=[2,4])[:,1,:,1])),inner=length(1951:2100))
 
 # Plot differences in migration with and without climate change for each quintile
 migration_quint_orig[:,:leave_quint_nocc_xi1] = collect(Iterators.flatten(m_nice_ssp2_orig_nocc[:migration,:leavemig][MimiFUND.getindexfromyear(1951):MimiFUND.getindexfromyear(2100),:,:]))
@@ -141,31 +144,37 @@ leave_quint_ccshare_orig |> @filter(_.year >= 2015 && _.year <= 2100) |> @vlplot
 # Run models for SSP2
 # Damages within a given region proportional to income (xi=1)
 m_nice_ssp2_catch = getmigrationnicemodel(scen="SSP2",migyesno="nomig",xi=1.0,omega=1.0)
+set_param!(m_nice_ssp2_catch,:runremcatchupdam, true)
 run(m_nice_ssp2_catch;ntimesteps=151)
 
 # Damages within a given region independent of income (xi=0)
 m_nice_ssp2_catch_xi0 = getmigrationnicemodel(scen="SSP2",migyesno="nomig",xi=0.0,omega=1.0)
+set_param!(m_nice_ssp2_catch_xi0,:runremcatchupdam, true)
 run(m_nice_ssp2_catch_xi0;ntimesteps=151)
 
 # Damages within a given region inversely proportional to income (xi=-1)
 m_nice_ssp2_catch_xim1 = getmigrationnicemodel(scen="SSP2",migyesno="nomig",xi=-1.0,omega=1.0)
+set_param!(m_nice_ssp2_catch_xim1,:runremcatchupdam, true)
 run(m_nice_ssp2_catch_xim1;ntimesteps=151)
 
 # Compare to without climate change
 # Damages proportional to income
 m_nice_ssp2_catch_nocc = getmigrationnicemodel(scen="SSP2",migyesno="nomig",xi=1.0,omega=1.0)
+set_param!(m_nice_ssp2_catch_nocc,:runremcatchupdam, true)
 set_param!(m_nice_ssp2_catch_nocc,:runwithoutdamage, true)
 update_param!(m_nice_ssp2_catch_nocc,:currtax, m_fund[:emissions,:currtax])
 run(m_nice_ssp2_catch_nocc;ntimesteps=151)
 
 # Damages independent of income between regions
 m_nice_ssp2_catch_nocc_xi0 = getmigrationnicemodel(scen="SSP2",migyesno="nomig",xi=0.0,omega=1.0)
+set_param!(m_nice_ssp2_catch_nocc_xi0,:runremcatchupdam, true)
 set_param!(m_nice_ssp2_catch_nocc_xi0,:runwithoutdamage, true)
 update_param!(m_nice_ssp2_catch_nocc_xi0,:currtax, m_fund[:emissions,:currtax])
 run(m_nice_ssp2_catch_nocc_xi0;ntimesteps=151)
 
 # Damages inversely proportional to income between regions
 m_nice_ssp2_catch_nocc_xim1 = getmigrationnicemodel(scen="SSP2",migyesno="nomig",xi=-1.0,omega=1.0)
+set_param!(m_nice_ssp2_catch_nocc_xim1,:runremcatchupdam, true)
 set_param!(m_nice_ssp2_catch_nocc_xim1,:runwithoutdamage, true)
 update_param!(m_nice_ssp2_catch_nocc_xim1,:currtax, m_fund[:emissions,:currtax])
 run(m_nice_ssp2_catch_nocc_xim1;ntimesteps=151)
@@ -176,12 +185,12 @@ migration_quint_catch = DataFrame(
     quintile = repeat(1:5, inner=length(years)*length(regions))
 )
 
-migration_quint_catch[:,:leave_quint_xi1] = collect(Iterators.flatten(m_nice_ssp2_nomig[:migration,:leavemig][MimiFUND.getindexfromyear(1951):MimiFUND.getindexfromyear(2100),:,:]))
-migration_quint_catch[:,:leave_quint_xi0] = collect(Iterators.flatten(m_nice_ssp2_nomig_xi0[:migration,:leavemig][MimiFUND.getindexfromyear(1951):MimiFUND.getindexfromyear(2100),:,:]))
-migration_quint_catch[:,:leave_quint_xim1] = collect(Iterators.flatten(m_nice_ssp2_nomig_xim1[:migration,:leavemig][MimiFUND.getindexfromyear(1951):MimiFUND.getindexfromyear(2100),:,:]))
+migration_quint_catch[:,:leave_quint_xi1] = collect(Iterators.flatten(m_nice_ssp2_catch[:migration,:leavemig][MimiFUND.getindexfromyear(1951):MimiFUND.getindexfromyear(2100),:,:]))
+migration_quint_catch[:,:leave_quint_xi0] = collect(Iterators.flatten(m_nice_ssp2_catch_xi0[:migration,:leavemig][MimiFUND.getindexfromyear(1951):MimiFUND.getindexfromyear(2100),:,:]))
+migration_quint_catch[:,:leave_quint_xim1] = collect(Iterators.flatten(m_nice_ssp2_catch_xim1[:migration,:leavemig][MimiFUND.getindexfromyear(1951):MimiFUND.getindexfromyear(2100),:,:]))
 
 # Look at emigrants without residual from gravity (residual same for all SSP, xi, CC or not)
-migration_quint_catch[!,:leave_quint_gravres] = repeat(collect(Iterators.flatten(sum(m_nice_ssp2_nomig[:migration,:gravres_qi],dims=[2,4])[:,1,:,1])),inner=length(1951:2100))
+migration_quint_catch[!,:leave_quint_gravres] = repeat(collect(Iterators.flatten(sum(m_nice_ssp2_catch[:migration,:gravres_qi],dims=[2,4])[:,1,:,1])),inner=length(1951:2100))
 
 # Plot differences in migration with and without climate change for each quintile
 migration_quint_catch[:,:leave_quint_nocc_xi1] = collect(Iterators.flatten(m_nice_ssp2_catch_nocc[:migration,:leavemig][MimiFUND.getindexfromyear(1951):MimiFUND.getindexfromyear(2100),:,:]))
@@ -208,7 +217,7 @@ leave_quint_ccshare_catch[!,:damage_elasticity] = map(x->SubString(string(x),21)
 leave_quint_ccshare_catch[!,:type_name] = [leave_quint_ccshare_catch[i,:damage_elasticity]=="damageprop" ? "proportional" : (leave_quint_ccshare_catch[i,:damage_elasticity]=="damageindep" ? "independent" : "inversely prop.") for i in eachindex(leave_quint_ccshare_catch[:,1])]
 leave_quint_ccshare_catch = innerjoin(leave_quint_ccshare_catch, regions_fullname, on=:fundregion)
 
-# For SSP2 and original SSP quantifications, this gives Fig.B10
+# For SSP2 and original SSP quantifications, this gives Fig.B11
 leave_quint_ccshare_catch |> @filter(_.year >= 2015 && _.year <= 2100) |> @vlplot(
     mark={:point,size=60}, width=300, height=250, columns=4, wrap={"regionname:o", title=nothing, header={labelFontSize=24}}, 
     x={"year:o", axis={labelFontSize=16, values = 2010:10:2100}, title=nothing},

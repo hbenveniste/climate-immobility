@@ -19,6 +19,8 @@ using Mimi
 
     pop           = Parameter(index=[time,regions,quintiles])
     income        = Parameter(index=[time,regions,quintiles])
+    damage_distr  = Parameter(index=[time, regions, quintiles])
+    eloss         = Parameter(index=[time,regions])
     popdens       = Parameter(index=[time,regions])
     vsl           = Parameter(index=[time,regions])
     lifeexp       = Parameter(index=[time,regions])
@@ -56,8 +58,9 @@ using Mimi
     delta2        = Parameter(default = -0.362)
     delta3        = Parameter(default = -5.953)
 
-    #runwithoutdamage    = Parameter{Bool}(default = false)
-    #consleak            = Parameter(default = 0.25)
+    runremcatchupdam    = Parameter{Bool}(default = false)
+    runwithoutdamage    = Parameter{Bool}(default = false)
+    consleak            = Parameter(default = 0.25)
 
     function run_timestep(p,v,d,t)
         if is_first(t)
@@ -295,7 +298,10 @@ using Mimi
 
             for r in d.regions
                 for q in d.quintiles
-                    v.remittances[t, r, q] = v.receive[t, r, q] - v.send[t, r, q]
+                    v.remittances[t, r, q] = max(
+                        v.receive[t, r, q] - v.send[t, r, q],
+                        (p.runremcatchupdam && t >= TimestepValue(1990) && !p.runwithoutdamage ? p.consleak * p.eloss[t-1, r] * p.damage_distr[t-1, r, q] / 10.0 : 0)
+                    )
                 end
             end
         end
