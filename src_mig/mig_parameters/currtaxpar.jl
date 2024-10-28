@@ -5,9 +5,10 @@ regions = ["USA", "CAN", "WEU", "JPK", "ANZ", "EEU", "FSU", "MDE", "CAM", "LAM",
 ssps = ["SSP1","SSP2","SSP3","SSP4","SSP5"]     # We use ["SSP1-RCP1.9","SSP2-RCP4.5","SSP3-RCP7.0","SSP4-RCP6.0","SSP5-RCP8.5"]
 
 # Determine carbon price at FUND region level using SSP scenarios
+# The carbon price is the same for all regions
 
 # Reading data from SSP database (IIASA). Units: US$2005/t CO2
-cpdata = XLSX.readdata(joinpath(@__DIR__, "../input_data/Carbonprice_SSPdatabase.xlsx"), "data!A1:P21")
+cpdata = XLSX.readdata(joinpath(@__DIR__, "../../input_data/Carbonprice_SSPdatabase.xlsx"), "data!A1:P21")
 cpdata = DataFrame(cpdata, :auto)
 rename!(cpdata, Symbol.(Vector(cpdata[1,:])))
 deleteat!(cpdata,1)
@@ -34,7 +35,7 @@ cpdata_s = stack(cpdata,3:12)
 rename!(cpdata_s, :variable=>:year, :value=>:cprice)
 cpdata_s[!,:year] = map(x->parse(Int,String(x)), cpdata_s[:,:year])
 
-# Linearizing from 10-year periods to yearly values. Note: a value for year x represents Carbon price at the beginning of the period                                                
+# Linearizing from 10-year periods to yearly values. Note: a value for year x actually represents Carbon price at the beginning of the period                                                
 cp_allyr = DataFrame(
     year = repeat(2010:2100, outer = length(ssps)*length(regions)),
     scen = repeat(ssps, inner = length(2010:2100)*length(regions)),
@@ -42,7 +43,7 @@ cp_allyr = DataFrame(
 )
 cp = outerjoin(cpdata_s[:,Not(:sspregion)], cp_allyr, on = [:year, :scen, :region])
 sort!(cp, [:scen, :region, :year])
-for i in eachindex(cp[:1])
+for i in eachindex(cp[:,1])
     if mod(cp[i,:year], 10) != 0
         ind = i - mod(cp[i,:year], 10)
         floor = cp[ind,:cprice] ; ceiling = cp[ind+10,:cprice]
@@ -86,7 +87,7 @@ cp_scen |> @filter(_.year >= 2010 && _.year <= 2100) |> @vlplot(
     x = {"year:o", axis={labelFontSize=16, values = 2010:10:2100}, title=nothing}, 
     y = {"mean(cprice)", title="Carbon price, USD/tC", axis={labelFontSize=16,titleFontSize=16}}, 
     color = {"scen:n", scale={scheme=:category10}, legend={title="Climate scenario", titleFontSize=20, titleLimit=220, symbolSize=60, labelFontSize=18, labelLimit=280}}
-) |> save(joinpath(@__DIR__, "../results/emissions/", "FigA5.png"))
+) |> save(joinpath(@__DIR__, "../results/emissions/", "FigS2.png"))
 
 # Write data for each SSP separately
 for s in ssps
