@@ -222,7 +222,7 @@ for s in ssps
         color={"quintile:o",scale={scheme=:darkmulti},legend={title = "Quintile", titleFontSize=20, symbolSize=80, labelFontSize=20}},
         shape={"type_name:o",scale={range=["circle","triangle-up","square"],domain=["proportional","independent","inversely prop."]},legend={title = "Damages elasticity", titleFontSize=20, titleLimit=260, symbolSize=80, labelFontSize=20}},
         resolve = {scale={y=:independent}}
-    ) |> save(joinpath(@__DIR__, "../results/migflow_ineq/", string("leave_cata_quint_ccshare_",s,"_v5.png")))
+    ) |> save(joinpath(@__DIR__, "../results/migflow_ineq/", string("leave_cata_quint_ccshare_",s,"_v5_update.png")))
 end
 
 # Plot associated maps
@@ -238,7 +238,7 @@ for s in ssps
             transform = [{lookup=:id, from={data=filter(row -> row[:scen] == s && row[:year] == 2100 && row[:damage_elasticity] == d && row[:quintile] == 1, leave_cata_maps), key=:isonum, fields=[string(:leave_cata_quint_ccshare_nocc)]}}],
             projection={type=:naturalEarth1}, title = {text=string("SSP2-RCP4.5, catastrophic damages"),fontSize=24}, 
             color = {:leave_cata_quint_ccshare_nocc, type=:quantitative, scale={domain=[-0.4,0.4], scheme=:pinkyellowgreen}, legend={title="Change vs no CC", titleFontSize=20, titleLimit=260, symbolSize=60, labelFontSize=20, labelLimit=220}}
-        ) |> save(joinpath(@__DIR__, "../results/world_maps_ineq/", string("leave_cata_q1_ccshare_", s, "_", d, "_v5.png")))
+        ) |> save(joinpath(@__DIR__, "../results/world_maps_ineq/", string("leave_cata_q1_ccshare_", s, "_", d, "_v5_update.png")))
     end
 end
 

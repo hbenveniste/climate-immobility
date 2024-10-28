@@ -385,8 +385,6 @@ leave_quint_ccshare = innerjoin(leave_quint_ccshare, regions_fullname, on=:fundr
 
 # For SSP2, this gives Extended Data Fig.3
 # For SSP3, this gives Extended Data Fig.4
-# For SSP2 and original SSP quantifications, this gives Fig.B10
-# For SSP2 and remittances catching up with damages, this gives Fig.B11
 for s in ssps
     leave_quint_ccshare |> @filter(_.year >= 2015 && _.year <= 2100 && _.scen == s) |> @vlplot(
         mark={:point,size=60}, width=300, height=250, columns=4, wrap={"regionname:o", title=nothing, header={labelFontSize=24}}, 
@@ -439,37 +437,3 @@ for s in ssps
         resolve = {scale={y=:independent}}
     ) |> save(joinpath(@__DIR__, "../results/migflow_ineq/", string("leave_quint_dec_nocc_",s,"_v5_update.png")))
 end
-
-# Test for when we divide the CO2 fertilization effect by 10, and multiply all other damages by 10.
-m_nice_ssp2_nofert_xi0 = getmigrationnicemodel(scen="SSP2",migyesno="nomig",xi=0.0,omega=1.0)
-update_param!(m_nice_ssp2_nofert_xi0, :agcbm, map(x->x/10,m_nice_ssp2_nomig[:impactagriculture,:agcbm]))
-set_param!(m_nice_ssp2_nofert_xi0, :consleak, 2.5)
-
-run(m_nice_ssp2_nofert_xi0;ntimesteps=151)
-
-migration_quint_nofert = DataFrame(
-    year = repeat(years, outer = length(regions)*5),
-    fundregion = repeat(regions, outer = 5, inner=length(years)),
-    quintile = repeat(1:5, inner=length(years)*length(regions))
-)
-leave_quint_nofert_xi0 = collect(Iterators.flatten(m_nice_ssp2_nofert_xi0[:migration,:leavemig][MimiFUND.getindexfromyear(1951):MimiFUND.getindexfromyear(2100),:,:]))
-migration_quint_nofert[:,:leave_quint_nofert_xi0] = leave_quint_nofert_xi0
-leave_quint_nocc_xi0 = collect(Iterators.flatten(m_nice_ssp2_nocc_xi0[:migration,:leavemig][MimiFUND.getindexfromyear(1951):MimiFUND.getindexfromyear(2100),:,:]))
-migration_quint_nofert[:,:leave_quint_nocc_xi0] = leave_quint_nocc_xi0
-migration_quint_nofert[!,:leave_quint_diff_xi0] = migration_quint_nofert[:,:leave_quint_nofert_xi0] .- migration_quint_nofert[:,:leave_quint_nocc_xi0]
-
-migration_quint_nofert[!,:leave_quint_gravres] = repeat(collect(Iterators.flatten(sum(m_nice_ssp2_nomig[:migration,:gravres_qi],dims=[2,4])[:,1,:,1])),inner=length(1951:2100))
-migration_quint_nofert[!,:leave_quint_ccshare_xi0] = (migration_quint_nofert[:,:leave_quint_nofert_xi0] .- migration_quint_nofert[:,:leave_quint_nocc_xi0]) ./ (migration_quint_nofert[:,:leave_quint_nocc_xi0] .- migration_quint_nofert[:,:leave_quint_gravres])
-
-migration_quint_nofert_p = migration_quint_nofert[(map(x->mod(x,10)==0,migration_quint_nofert[:,:year])),:]
-
-migration_quint_nofert_p = innerjoin(migration_quint_nofert_p, regions_fullname, on=:fundregion)
-
-# Plot graph over time
-migration_quint_nofert_p |> @filter(_.year >= 2015 && _.year <= 2100) |> @vlplot(
-    mark={:point,filled=true,size=80}, width=300, height=250, columns=4, wrap={"regionname:o", title=nothing, header={labelFontSize=24}}, 
-    x={"year:o", axis={labelFontSize=16, values = 2010:10:2100}, title=nothing},
-    y={"leave_quint_ccshare_xim1:q", title = "CC effect on total emigrants", axis={labelFontSize=20,titleFontSize=20}},
-    color={"quintile:o",scale={scheme=:darkmulti},legend={title = "Quintile", titleFontSize=20, symbolSize=80, labelFontSize=20}},
-    resolve = {scale={y=:independent}}
-) |> save(joinpath(@__DIR__, "../results/migflow_ineq/", string("FigB12_update.png")))

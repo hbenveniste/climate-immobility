@@ -4,6 +4,7 @@ using Statistics, DataFrames, Query
 using MimiFUND
 
 include("main_mig_nice.jl")
+include("fund_ssp_ineq.jl")
 
 ssps = ["SSP1","SSP2","SSP3","SSP4","SSP5"]
 regions = ["USA", "CAN", "WEU", "JPK", "ANZ", "EEU", "FSU", "MDE", "CAM", "LAM", "SAS", "SEA", "CHI", "MAF", "SSA", "SIS"]
@@ -25,6 +26,17 @@ run(m_nice_ssp2_nomig)
 run(m_nice_ssp3_nomig)
 run(m_nice_ssp4_nomig)
 run(m_nice_ssp5_nomig)
+
+m_fundnicessp1 = getsspnicemodel(scen="SSP1",migyesno="mig",xi=1.0,omega=1.0)
+m_fundnicessp2 = getsspnicemodel(scen="SSP2",migyesno="mig",xi=1.0,omega=1.0)
+m_fundnicessp3 = getsspnicemodel(scen="SSP3",migyesno="mig",xi=1.0,omega=1.0)
+m_fundnicessp4 = getsspnicemodel(scen="SSP4",migyesno="mig",xi=1.0,omega=1.0)
+m_fundnicessp5 = getsspnicemodel(scen="SSP5",migyesno="mig",xi=1.0,omega=1.0)
+run(m_fundnicessp1)
+run(m_fundnicessp2)
+run(m_fundnicessp3)
+run(m_fundnicessp4)
+run(m_fundnicessp5)
 
 # Damages within a given region independent of income (xi=0)
 m_nice_ssp1_nomig_xi0 = getmigrationnicemodel(scen="SSP1",migyesno="nomig",xi=0.0,omega=1.0)
