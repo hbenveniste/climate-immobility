@@ -137,7 +137,7 @@ leave_quint_ccshare_orig |> @filter(_.year >= 2015 && _.year <= 2100) |> @vlplot
     color={"quintile:o",scale={scheme=:darkmulti},legend={title = "Quintile", titleFontSize=20, symbolSize=80, labelFontSize=20}},
     shape={"type_name:o",scale={range=["circle","triangle-up","square"],domain=["proportional","independent","inversely prop."]},legend={title = "Damages elasticity", titleFontSize=20, titleLimit=260, symbolSize=80, labelFontSize=20}},
     resolve = {scale={y=:independent}}
-) |> save(joinpath(@__DIR__, "../results/migflow_ineq/", string("B10_update.png")))
+) |> save(joinpath(@__DIR__, "../results/migflow_ineq/", string("FigB10_update.png")))
 
 
 ########################################## Run models with remittances catching up with damages ####################################################
@@ -225,4 +225,4 @@ leave_quint_ccshare_catch |> @filter(_.year >= 2015 && _.year <= 2100) |> @vlplo
     color={"quintile:o",scale={scheme=:darkmulti},legend={title = "Quintile", titleFontSize=20, symbolSize=80, labelFontSize=20}},
     shape={"type_name:o",scale={range=["circle","triangle-up","square"],domain=["proportional","independent","inversely prop."]},legend={title = "Damages elasticity", titleFontSize=20, titleLimit=260, symbolSize=80, labelFontSize=20}},
     resolve = {scale={y=:independent}}
-) |> save(joinpath(@__DIR__, "../results/migflow_ineq/", string("B11_update.png")))
+) |> save(joinpath(@__DIR__, "../results/migflow_ineq/", string("FigB11_update.png")))

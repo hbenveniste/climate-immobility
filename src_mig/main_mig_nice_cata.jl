@@ -106,6 +106,8 @@ function getmigrationnicecatamodel(;datamigdir=path_datamigdir,scen="SSP2",migye
     # migration component connections
     connect_param!(m, :migration, :pop, :socioeconomic, :quintile_pop)
     connect_param!(m, :migration, :income, :socioeconomic, :quintile_income)
+    connect_param!(m, :migration, :damage_distr, :socioeconomic, :damage_distribution)
+    connect_param!(m, :migration, :eloss, :addimpact, :elossall)
     connect_param!(m, :migration, :popdens, :socioeconomic, :popdens)
     connect_param!(m, :migration, :vsl, :vslvmorb, :vsl)
 

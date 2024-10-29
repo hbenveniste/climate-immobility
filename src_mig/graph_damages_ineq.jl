@@ -211,7 +211,7 @@ for s in ssps
         @vlplot(width=800, height=600) + @vlplot(mark={:geoshape, stroke = :lightgray}, 
             data={values=world110m, format={type=:topojson, feature=:countries}}, 
             transform = [{lookup=:id, from={data=filter(row -> row[:scen] == s && row[:year] == 2100 && row[:damage_elasticity] == d && row[:quintile] == 1, income_shock_maps), key=:isonum, fields=[string(:income_shock)]}}],
-            projection={type=:naturalEarth1}, title = {text=string("SSP2-RCP4.5"),fontSize=24}, 
+            projection={type=:naturalEarth1}, title = {text=string(s),fontSize=24}, 
             color = {:income_shock, type=:quantitative, scale={domain=[-1.2,1.2], scheme=:blueorange}, legend={title="Share of income", titleFontSize=20, titleLimit=260, symbolSize=60, labelFontSize=20, labelLimit=220}}
         ) |> save(joinpath(@__DIR__, "../results/world_maps_ineq/", string("income_shock_q1_", s, "_", d, "_v5_update.png")))
     end

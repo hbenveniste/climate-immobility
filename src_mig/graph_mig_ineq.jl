@@ -152,7 +152,7 @@ rename!(enter_quint, :variable => :enter_type, :value => :enter_quint)
 enter_quint[!,:enter_type] = map(x->SubString(String(x), 13), enter_quint[:,:enter_type])
 enter_quint = innerjoin(enter_quint, regions_fullname, on =:fundregion)
 
-# For SSP2, this gives Fig.B1
+# For SSP2, this gives Fig.1b
 for s in ssps
     enter_quint |> @filter(_.year >= 2015 && _.year <= 2100 && _.scen == s && _.enter_type == "damageinvprop") |> @vlplot(
         mark={:line,point={filled=true,size=80}}, width=300, height=250, columns=4, wrap={"regionname:o", title=nothing, header={labelFontSize=24}}, 
@@ -384,7 +384,7 @@ leave_quint_ccshare[!,:type_name] = [leave_quint_ccshare[i,:damage_elasticity]==
 leave_quint_ccshare = innerjoin(leave_quint_ccshare, regions_fullname, on=:fundregion)
 
 # For SSP2, this gives Extended Data Fig.3
-# For SSP3, this gives Extended Data Fig.4
+# For SSP3, this gives  Fig.4
 for s in ssps
     leave_quint_ccshare |> @filter(_.year >= 2015 && _.year <= 2100 && _.scen == s) |> @vlplot(
         mark={:point,size=60}, width=300, height=250, columns=4, wrap={"regionname:o", title=nothing, header={labelFontSize=24}}, 
@@ -407,7 +407,7 @@ for s in ssps
         @vlplot(width=800, height=600) + @vlplot(mark={:geoshape, stroke = :lightgray}, 
             data={values=world110m, format={type=:topojson, feature=:countries}}, 
             transform = [{lookup=:id, from={data=filter(row -> row[:scen] == s && row[:year] == 2100 && row[:damage_elasticity] == d && row[:quintile] == 1, leave_maps), key=:isonum, fields=[string(:leave_quint_ccshare_nocc)]}}],
-            projection={type=:naturalEarth1}, title = {text=string("SSP2-RCP4.5"),fontSize=24}, 
+            projection={type=:naturalEarth1}, title = {text=string(s),fontSize=24}, 
             color = {:leave_quint_ccshare_nocc, type=:quantitative, scale={domain=[-0.4,0.4], scheme=:pinkyellowgreen}, legend={title="Change vs no CC", titleFontSize=20, titleLimit=260, symbolSize=60, labelFontSize=20, labelLimit=220}}
         ) |> save(joinpath(@__DIR__, "../results/world_maps_ineq/", string("leave_q1_ccshare_", s, "_", d, "_v5_update.png")))
     end
