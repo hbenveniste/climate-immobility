@@ -459,14 +459,14 @@ regtable(regirq1avspnogfe,regirq2avspnogfe,regirq3avspnogfe,regirq4avspnogfe,reg
 # Estimation for each origin quintile. Will be followed by estimation of repartition in each destination quintile.
 beta_quint_ratio = DataFrame(
     regtype = ["reg_quint_ratioavsp_q1","reg_quint_ratioavsp_q2", "reg_quint_ratioavsp_q3","reg_quint_ratioavsp_q4", "reg_quint_ratioavsp_q5"],
-    beta1 = [0.814,0.803,0.778,0.794,0.792],       # pop_quint_orig
-    beta2 = [0.708,0.708,0.709,0.709,0.711],       # pop_quint_dest
-    beta4 = [1.829,1.809,1.945,1.919,1.847],       # ypc_quint_orig
-    beta5 = [1.220,1.227,1.215,1.212,1.201],       # ypcratio_avsp
-    beta7 = [-1.028,-1.003,-1.043,-1.040,-1.061],   # distance
+    beta1 = [0.813,0.803,0.778,0.794,0.791],       # pop_quint_orig
+    beta2 = [0.707,0.707,0.709,0.709,0.710],       # pop_quint_dest
+    beta4 = [1.820,1.800,1.936,1.910,1.838],       # ypc_quint_orig
+    beta5 = [1.210,1.217,1.206,1.202,1.192],       # ypcratio_avsp
+    beta7 = [-1.024,-0.999,-1.039,-1.036,-1.058],   # distance
     beta8 = [-0.004,-0.004,-0.002,-0.002,-0.000],       # exp_residual
-    beta9 = [-15.227,-17.147,-16.796,-16.682,-16.994],       # remcost
-    beta10 = [1.476,1.548,1.436,1.425,1.330]       # comofflang
+    beta9 = [-15.014,-16.935,-16.585,-16.472,-16.786],       # remcost
+    beta10 = [1.488,1.560,1.448,1.437,1.342]       # comofflang
 )
 
 # Compute constant including year fixed effect as average of beta0 + yearFE
@@ -535,8 +535,8 @@ regtable(regsd1,regsd2,regsd3,regsd4,regsd5; render = AsciiTable(),regression_st
 
 gamma_quint = DataFrame(
     regtype = ["reg_sharedest_q1","reg_sharedest_q2", "reg_sharedest_q3","reg_sharedest_q4", "reg_sharedest_q5"],
-    gamma0 = [-1.546,-1.798,-2.166,-1.816,-1.395],       # intercept
-    gamma1 = [0.114,0.079,0.054,0.031,-0.135],       # ypc_dest / ypc_quint_orig
+    gamma0 = [-1.518,-1.760,-2.188,-1.832,-1.422],       # intercept
+    gamma1 = [0.115,0.076,0.041,0.023,-0.132],       # ypc_dest / ypc_quint_orig
 )
 
 

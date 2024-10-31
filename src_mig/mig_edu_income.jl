@@ -117,9 +117,23 @@ ssp.outmig_update = ssp.outmig .* ssp.pop_update ./ ssp.pop
 replace!(ssp.inmig_update, NaN => 0.0)
 replace!(ssp.outmig_update, NaN => 0.0)
 
+# We then rescale inmig_update to make sure that for each SSP scenario, time period, and demographic group, the sum over countries of inmig_update = the sum over countries of outmig_update
+ssp = innerjoin(
+    ssp,
+    combine(
+        groupby(
+            ssp,
+            [:scen, :period, :sex, :age, :edu]
+        ),
+        :inmig_update => sum, :outmig_update => sum
+    ),
+    on = [:scen, :period, :sex, :age, :edu]
+)
+ssp.inmig_update = ssp.inmig_update .* ssp.outmig_update_sum ./ ssp.inmig_update_sum
+replace!(ssp.inmig_update, NaN => 0.0)
 
 # Keep only updated versions and rename them 
-select!(ssp, Not([:pop,:outmig,:inmig]))
+select!(ssp, Not([:pop,:outmig,:inmig,:inmig_update_sum,:outmig_update_sum]))
 rename!(ssp, :pop_update => :pop, :inmig_update => :inmig, :outmig_update => :outmig)
 
 CSV.write("C:/Users/hmrb/Stanford_Benveniste Dropbox/Hélène Benveniste/migration-exposure-immobility/results_large/ssp_update.csv", ssp)
@@ -149,7 +163,7 @@ ssp_edu |> @filter(_.period <2100) |> @vlplot(
 ) |> save(joinpath(@__DIR__, "../results/education/", "FigA1a_update.png"))
 
 ssp_edu |> @filter(_.period <2100) |> @vlplot(
-    mark={:errorband, extent=:ci}, y={"inmig_share:q", title = "Shares, immigrants", axis={labelFontSize=20,titleFontSize=20}}, x={"period:o",labelFontSize=16, title=nothing}, row = {"scen:o", axis={labelFontSize=16}, title=nothing},
+    :line, y={"median(inmig_share)", title = "Shares, immigrants", axis={labelFontSize=20,titleFontSize=20}}, x={"period:o",labelFontSize=16, title=nothing}, row = {"scen:o", axis={labelFontSize=16}, title=nothing},
     color={"edu:o", scale={scheme=:dark2}, legend={title = "Education level", titleFontSize=20, symbolSize=80, labelFontSize=20, titleLimit=260}}
 ) |> save(joinpath(@__DIR__, "../results/education/", "FigA1b_update.png"))
 
@@ -400,12 +414,12 @@ edu_terc = combine(d->(pop_terc=sum(d.pop_tercile),outmig_terc=sum(d.outmig_terc
 edu_terc = innerjoin(edu_terc, rename(pop, :PopTotal=>:pop)[:,3:4], on=:country)
 edu_terc = innerjoin(edu_terc, rename(gdp[(gdp[:,:year0].==2010),:],:Region=>:country), on = :country)
 
-gini = CSV.File(joinpath(@__DIR__, "../../../../YSSP-IIASA/data/gini_rao/ssp_ginis.csv")) |> DataFrame
+gini = CSV.File(joinpath(@__DIR__, "../input_data/ssp_ginis.csv")) |> DataFrame
 p = range(0, step=1/3, stop=1)     
 for t in 1:length(p)-1
     gini[!,Symbol(string("t", t))] = [cdf.(Normal(), quantile.(Normal(), p[t+1]) .- sqrt(2) .* quantile.(Normal(), (gini[!,:gini][i] + 1)/2)) - cdf.(Normal(), quantile.(Normal(), p[t]) .- sqrt(2) .* quantile.(Normal(), (gini[!,:gini][i] + 1)/2)) for i in eachindex(gini[:,1])]
 end
-gini_stack_terc = stack(gini[!,Not([:q1,:q2,:q3,:q4,:q5])],[:t1,:t2,:t3])
+gini_stack_terc = stack(gini,[:t1,:t2,:t3])
 rename!(gini_stack_terc, :variable=>:tercile,:value=>:gdpshare_terc)
 
 edu_terc = innerjoin(edu_terc, rename(gini_stack_terc[.&(gini_stack_terc[:,:year].==2010,gini_stack_terc[:,:scenario].=="SSP2"),:],:iso=>:country)[:,[:country,:tercile,:gdpshare_terc]], on=[:country,:tercile])
