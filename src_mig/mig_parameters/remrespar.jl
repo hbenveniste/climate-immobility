@@ -77,6 +77,7 @@ for i in eachindex(data_resweight[:,1])
         data_resweight[i,:res_weight] = 0.0
     end
 end
+
 # Weight exp(residuals), instead of taking exp of weighted residuals 
 data_resweight[!,:exp_res_weighted] = map(x -> exp(x),data_resweight[:,:residual_ratio]) .* data_resweight[:,:res_weight]
 
@@ -88,4 +89,6 @@ rename!(data_resweight_fund, :x1 => :remres)
 data_resweight_fund = innerjoin(data_resweight_fund, regionsdf, on = [:originregion, :destinationregion])
 sort!(data_resweight_fund, [:indexo, :indexd])
 select!(data_resweight_fund, [:originregion, :destinationregion, :remres])
+
+
 CSV.write(joinpath(@__DIR__,"../../data_mig/remres_update.csv"), data_resweight_fund; writeheader=false)

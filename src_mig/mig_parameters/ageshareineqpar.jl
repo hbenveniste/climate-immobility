@@ -144,5 +144,6 @@ regionsdf = DataFrame(region = regions, index = 1:16)
 age_quint_all = innerjoin(age_quint_all, regionsdf, on = :region)
 sort!(age_quint_all, [:index, :quint, :ageall])
 
+
 CSV.write(joinpath(@__DIR__, "../../data_mig_3d/ageshare_ineq_update.csv"), age_quint_all[:,[:region,:quint,:ageall,:agemig_reg]]; writeheader=false)
 CSV.write(joinpath(@__DIR__, "../../input_data/age_quint_all_update.csv"), age_quint_all)

@@ -173,6 +173,7 @@ ssp_edu[!,:inmigpop_ratio] = ssp_edu[:,:inmig_share] ./ ssp_edu[:,:pop_share]
 ssp_edu[!,:outmigpop_diff] = ssp_edu[:,:outmig_share] .- ssp_edu[:,:pop_share]
 ssp_edu[!,:inmigpop_diff] = ssp_edu[:,:inmig_share] .- ssp_edu[:,:pop_share]
 
+
 CSV.write(joinpath(@__DIR__, "../input_data/ssp_edu_update.csv"), ssp_edu)
 
 
@@ -427,6 +428,7 @@ edu_terc = innerjoin(edu_terc, rename(gini_stack_terc[.&(gini_stack_terc[:,:year
 edu_terc[!,:ypc_terc] = edu_terc[:,:gdp] .* 10^9 .* edu_terc[:,:gdpshare_terc] ./ (edu_terc[:,:pop] .* 1000 ./ 5)
 edu_terc[!,:ypc_rel] = edu_terc[:,:ypc_terc] ./ (edu_terc[:,:gdp] .* 10^9 ./ (edu_terc[:,:pop] .* 1000))
 
+
 CSV.write(joinpath(@__DIR__,"../input_data/edu_terc_update.csv"),edu_terc)
 
 
@@ -442,5 +444,6 @@ edu_bil_terc = innerjoin(
 )
 
 edu_bil_terc[!,:flow_terc] = edu_bil_terc[:,:flow] .* edu_bil_terc[:,:outmig_terc] .* edu_bil_terc[:,:inmig_terc]
+
 
 CSV.write("C:/Users/hmrb/Stanford_Benveniste Dropbox/Hélène Benveniste/migration-exposure-immobility/results_large/edu_bil_terc_update.csv",edu_bil_terc)

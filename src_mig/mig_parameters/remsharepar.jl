@@ -1,7 +1,7 @@
 using CSV, DataFrames, ExcelFiles, Query, DelimitedFiles, Statistics, XLSX
 
-# Calculating the share of income that migrants send to their home region as remittances, rho.
 
+##################### Calculating the share of income that migrants send to their home region as remittances, rho ##################
 # Reading migrant stocks at country * country level; data for 2017 from World Bank.
 migstock_matrix = XLSX.readdata(joinpath(@__DIR__, "../../input_data/WB_Bilateral_Estimates_Migrant_Stocks_2017.xlsx"), "Bilateral_Migration_2017!A2:HJ219") 
 migstock_matrix = DataFrame(migstock_matrix, :auto)
@@ -97,5 +97,6 @@ for i in eachindex(rho[:,1])
     append!(rhovalue, v)
 end
 rho[!,:rho] = rhovalue        
+
 
 CSV.write(joinpath(@__DIR__,"../../input_data/rho.csv"), sort(rename(rho[:,[:origincountry,:destinationcountry,:rho]], :origincountry => :origin, :destinationcountry => :destination), [:origin,:destination]))
