@@ -8,7 +8,7 @@ iso3c_fundregion = CSV.File(joinpath(@__DIR__,"../../input_data/iso3c_fundregion
 # We use bilateral migration stocks from 2017 from the World Bank
 # In order to get its age distribution, we assume that it is the average of two age distributions in the destination country: 
 # the one of migrants at time of migration in the period 2015-2020 (computed from the SSP2 as "share")
-# and the one of the overall destination population in the period 2015-2020 (based on SSP2)
+# and the one of the overall destination population in the period 2020-2025 (based on SSP2)
 
 # Reading bilateral migrant stocks from 2017
 migstock_matrix = XLSX.readdata(joinpath(@__DIR__, "../../input_data/WB_Bilateral_Estimates_Migrant_Stocks_2017.xlsx"), "Bilateral_Migration_2017!A2:HJ219") 
@@ -65,7 +65,7 @@ for c in ["SXM", "MAF", "CHI", "XKX"]
 end
 
 # Add data on education and income profiles of migrants.
-# We use the profiles of 2015-2020 migrants in SSP for the migrant stocks (already there) at that time
+# We use the profiles of 2020-2025 migrants in SSP for the migrant stocks (already there) at that time
 edu_quint = CSV.File(joinpath(@__DIR__,"../../input_data/edu_quint_update.csv")) |> DataFrame
 
 migstock_edu = innerjoin(
@@ -103,7 +103,7 @@ ssp = CSV.File("C:/Users/hmrb/Stanford_Benveniste Dropbox/Hélène Benveniste/mi
 
 sspageedu = combine(d->(pop=sum(d.pop),outmig=sum(d.outmig),inmig=sum(d.inmig)), groupby(ssp, [:age,:edu,:region,:period,:scen]))
 agedist = @from i in sspageedu begin
-    @where i.period == 2015 && i.scen == "SSP2"
+    @where i.period == 2020 && i.scen == "SSP2"
     @select {i.region, i.age, i.edu, i.pop, i.outmig, i.inmig}
     @collect DataFrame
 end
@@ -184,7 +184,7 @@ replace!(age_cross.inmig_quintile, NaN => 0.0)
 age_quint = combine(d->(pop_quint=sum(d.pop_quintile),outmig_quint=sum(d.outmig_quintile),inmig_quint=sum(d.inmig_quintile)), groupby(age_cross,[:country,:quintile,:age]))
 
 # In order to get its age distribution, we assume that it is the average of two age distributions in the destination country: 
-# the one of migrants at time of migration and the one of the overall destination population, both in the period 2015-2020 (based on SSP2)
+# the one of migrants at time of migration and the one of the overall destination population, both in the period 2020-2025 (based on SSP2)
 age_quint[!,:mean_quint] = (age_quint[:,:pop_quint] .+ age_quint[:,:inmig_quint]) ./ 2
 age_quint[!,:quintile] = map(x->String(x), age_quint[:,:quintile])
 

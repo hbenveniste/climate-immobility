@@ -459,14 +459,14 @@ regtable(regirq1avspnogfe,regirq2avspnogfe,regirq3avspnogfe,regirq4avspnogfe,reg
 # Estimation for each origin quintile. Will be followed by estimation of repartition in each destination quintile.
 beta_quint_ratio = DataFrame(
     regtype = ["reg_quint_ratioavsp_q1","reg_quint_ratioavsp_q2", "reg_quint_ratioavsp_q3","reg_quint_ratioavsp_q4", "reg_quint_ratioavsp_q5"],
-    beta1 = [0.813,0.803,0.778,0.794,0.791],       # pop_quint_orig
-    beta2 = [0.707,0.707,0.709,0.709,0.710],       # pop_quint_dest
-    beta4 = [1.820,1.800,1.936,1.910,1.838],       # ypc_quint_orig
-    beta5 = [1.210,1.217,1.206,1.202,1.192],       # ypcratio_avsp
-    beta7 = [-1.024,-0.999,-1.039,-1.036,-1.058],   # distance
-    beta8 = [-0.004,-0.004,-0.002,-0.002,-0.000],       # exp_residual
-    beta9 = [-15.014,-16.935,-16.585,-16.472,-16.786],       # remcost
-    beta10 = [1.488,1.560,1.448,1.437,1.342]       # comofflang
+    beta1 = [0.801,0.189,0.786,0.788,0.794],       # pop_quint_orig
+    beta2 = [0.706,0.707,0.707,0.706,0.710],       # pop_quint_dest
+    beta4 = [1.644,1.767,1.807,1.877,1.873],       # ypc_quint_orig
+    beta5 = [1.161,1.162,1.157,1.157,1.141],       # ypcratio_avsp
+    beta7 = [-1.029,-1.039,-1.045,-1.025,-1.089],   # distance
+    beta8 = [-0.004,-0.005,-0.003,-0.003,-0.000],       # exp_residual
+    beta9 = [-16.684,-17.021,-17.268,-17.316,-18.785],       # remcost
+    beta10 = [1.516,1.466,1.440,1.449,1.279]       # comofflang
 )
 
 # Compute constant including year fixed effect as average of beta0 + yearFE
@@ -535,8 +535,8 @@ regtable(regsd1,regsd2,regsd3,regsd4,regsd5; render = AsciiTable(),regression_st
 
 gamma_quint = DataFrame(
     regtype = ["reg_sharedest_q1","reg_sharedest_q2", "reg_sharedest_q3","reg_sharedest_q4", "reg_sharedest_q5"],
-    gamma0 = [-1.518,-1.760,-2.188,-1.832,-1.422],       # intercept
-    gamma1 = [0.115,0.076,0.041,0.023,-0.132],       # ypc_dest / ypc_quint_orig
+    gamma0 = [-1.878,-1.837,-1.910,-1.684,-1.108],       # intercept
+    gamma1 = [0.015,-0.002,0.014,0.034,-0.028],       # ypc_dest / ypc_quint_orig
 )
 
 
