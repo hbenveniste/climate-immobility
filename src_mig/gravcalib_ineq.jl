@@ -349,7 +349,7 @@ regirq3avspnog = reg(rename(gravity_quint[(gravity_quint[:,:quint_orig].=="q3"),
 regirq4avspnog = reg(rename(gravity_quint[(gravity_quint[:,:quint_orig].=="q4"),:],:flow_quint=>:flow_q4), @formula(flow_q4 ~ pop_quint_orig + pop_quint_dest + ypc_quint_orig + ypcratio_avsp + distance + exp_residual + remcost + comofflang + fe(year)), Vcov.cluster(:orig, :dest), save=true)
 regirq5avspnog = reg(rename(gravity_quint[(gravity_quint[:,:quint_orig].=="q5"),:],:flow_quint=>:flow_q5), @formula(flow_q5 ~ pop_quint_orig + pop_quint_dest + ypc_quint_orig + ypcratio_avsp + distance + exp_residual + remcost + comofflang + fe(year)), Vcov.cluster(:orig, :dest), save=true)
 
-regtable(regirq1avspnog,regirq2avspnog,regirq3avspnog,regirq4avspnog,regirq5avspnog; render = AsciiTable(),regression_statistics=[:nobs, :r2 ])      
+regtable(regirq1avspnog,regirq2avspnog,regirq3avspnog,regirq4avspnog,regirq5avspnog; regression_statistics=[:nobs, :r2 ])      
 
 # Estimation with data from Abel (2018)
 gravity_quint_abel[!,:ypcratio_avsp] = map(x->log(x), map(x->exp(x), gravity_quint_abel[:,:ypc_dest]) ./ map(x->exp(x), gravity_quint_abel[:,:ypc_quint_orig]))
@@ -359,7 +359,7 @@ regirq3avspnogabel = reg(rename(gravity_quint_abel[.&(gravity_quint_abel[:,:quin
 regirq4avspnogabel = reg(rename(gravity_quint_abel[.&(gravity_quint_abel[:,:quint_orig].=="q4",gravity_quint_abel[:,:flow_quint].>-Inf),:],:flow_quint=>:flow_q4), @formula(flow_q4 ~ pop_quint_orig + pop_quint_dest + ypc_quint_orig + ypcratio_avsp + distance + exp_residual + remcost + comofflang + fe(year)), Vcov.cluster(:orig, :dest), save=true)
 regirq5avspnogabel = reg(rename(gravity_quint_abel[.&(gravity_quint_abel[:,:quint_orig].=="q5",gravity_quint_abel[:,:flow_quint].>-Inf),:],:flow_quint=>:flow_q5), @formula(flow_q5 ~ pop_quint_orig + pop_quint_dest + ypc_quint_orig + ypcratio_avsp + distance + exp_residual + remcost + comofflang + fe(year)), Vcov.cluster(:orig, :dest), save=true)
 
-regtable(regirq1avspnogabel,regirq2avspnogabel,regirq3avspnogabel,regirq4avspnogabel,regirq5avspnogabel; render = AsciiTable(),regression_statistics=[:nobs, :r2 ])      
+regtable(regirq1avspnogabel,regirq2avspnogabel,regirq3avspnogabel,regirq4avspnogabel,regirq5avspnogabel; regression_statistics=[:nobs, :r2 ])      
 
 # With income at origin without remittances
 gravity_quint[!,:ypc_quint_orig_nor] = map(x->log(x), (map(x->exp(x), gravity_quint[:,:pop_quint_orig]) .* map(x->exp(x), gravity_quint[:,:ypc_quint_orig]) .- gravity_quint[:,:remshare] .* map(x->exp(x), gravity_quint[:,:flow_quint]) .* map(x->exp(x), gravity_quint[:,:ypc_quint_dest])) ./ map(x->exp(x), gravity_quint[:,:pop_quint_orig]))
@@ -370,7 +370,7 @@ regirq3avspnognor = reg(rename(gravity_quint[(gravity_quint[:,:quint_orig].=="q3
 regirq4avspnognor = reg(rename(gravity_quint[(gravity_quint[:,:quint_orig].=="q4"),:],:flow_quint=>:flow_q4), @formula(flow_q4 ~ pop_quint_orig + pop_quint_dest + ypc_quint_orig_nor + ypcratio_avsp + distance + exp_residual + remcost + comofflang + fe(year)), Vcov.cluster(:orig, :dest), save=true)
 regirq5avspnognor = reg(rename(gravity_quint[(gravity_quint[:,:quint_orig].=="q5"),:],:flow_quint=>:flow_q5), @formula(flow_q5 ~ pop_quint_orig + pop_quint_dest + ypc_quint_orig_nor + ypcratio_avsp + distance + exp_residual + remcost + comofflang + fe(year)), Vcov.cluster(:orig, :dest), save=true)
 
-regtable(regirq1avspnognor,regirq2avspnognor,regirq3avspnognor,regirq4avspnognor,regirq5avspnognor; render = AsciiTable(),regression_statistics=[:nobs, :r2 ])      
+regtable(regirq1avspnognor,regirq2avspnognor,regirq3avspnognor,regirq4avspnognor,regirq5avspnognor; regression_statistics=[:nobs, :r2 ])      
 
 # With squared term for ypc at origin
 regirq1avspnogsq = reg(rename(gravity_quint[(gravity_quint[:,:quint_orig].=="q1"),:],:flow_quint=>:flow_q1), @formula(flow_q1 ~ pop_quint_orig + pop_quint_dest + ypc_quint_orig + ypc_quint_orig_sq + ypcratio_avsp + distance + exp_residual + remcost + comofflang + fe(year)), Vcov.cluster(:orig, :dest), save=true)
@@ -379,7 +379,7 @@ regirq3avspnogsq = reg(rename(gravity_quint[(gravity_quint[:,:quint_orig].=="q3"
 regirq4avspnogsq = reg(rename(gravity_quint[(gravity_quint[:,:quint_orig].=="q4"),:],:flow_quint=>:flow_q4), @formula(flow_q4 ~ pop_quint_orig + pop_quint_dest + ypc_quint_orig + ypc_quint_orig_sq + ypcratio_avsp + distance + exp_residual + remcost + comofflang + fe(year)), Vcov.cluster(:orig, :dest), save=true)
 regirq5avspnogsq = reg(rename(gravity_quint[(gravity_quint[:,:quint_orig].=="q5"),:],:flow_quint=>:flow_q5), @formula(flow_q5 ~ pop_quint_orig + pop_quint_dest + ypc_quint_orig + ypc_quint_orig_sq + ypcratio_avsp + distance + exp_residual + remcost + comofflang + fe(year)), Vcov.cluster(:orig, :dest), save=true)
 
-regtable(regirq1avspnogsq,regirq2avspnogsq,regirq3avspnogsq,regirq4avspnogsq,regirq5avspnogsq; render = AsciiTable(),regression_statistics=[:nobs, :r2 ])      
+regtable(regirq1avspnogsq,regirq2avspnogsq,regirq3avspnogsq,regirq4avspnogsq,regirq5avspnogsq; regression_statistics=[:nobs, :r2 ])      
 
 # With squared and cube terms for ypc at origin
 regirq1avspnogsqcu = reg(rename(gravity_quint[(gravity_quint[:,:quint_orig].=="q1"),:],:flow_quint=>:flow_q1), @formula(flow_q1 ~ pop_quint_orig + pop_quint_dest + ypc_quint_orig + ypc_quint_orig_sq + ypc_quint_orig_cu + ypcratio_avsp + distance + exp_residual + remcost + comofflang + fe(year)), Vcov.cluster(:orig, :dest), save=true)
@@ -388,7 +388,7 @@ regirq3avspnogsqcu = reg(rename(gravity_quint[(gravity_quint[:,:quint_orig].=="q
 regirq4avspnogsqcu = reg(rename(gravity_quint[(gravity_quint[:,:quint_orig].=="q4"),:],:flow_quint=>:flow_q4), @formula(flow_q4 ~ pop_quint_orig + pop_quint_dest + ypc_quint_orig + ypc_quint_orig_sq + ypc_quint_orig_cu + ypcratio_avsp + distance + exp_residual + remcost + comofflang + fe(year)), Vcov.cluster(:orig, :dest), save=true)
 regirq5avspnogsqcu = reg(rename(gravity_quint[(gravity_quint[:,:quint_orig].=="q5"),:],:flow_quint=>:flow_q5), @formula(flow_q5 ~ pop_quint_orig + pop_quint_dest + ypc_quint_orig + ypc_quint_orig_sq + ypc_quint_orig_cu + ypcratio_avsp + distance + exp_residual + remcost + comofflang + fe(year)), Vcov.cluster(:orig, :dest), save=true)
 
-regtable(regirq1avspnogsqcu,regirq2avspnogsqcu,regirq3avspnogsqcu,regirq4avspnogsqcu,regirq5avspnogsqcu; render = AsciiTable(),regression_statistics=[:nobs, :r2 ])  
+regtable(regirq1avspnogsqcu,regirq2avspnogsqcu,regirq3avspnogsqcu,regirq4avspnogsqcu,regirq5avspnogsqcu; regression_statistics=[:nobs, :r2 ])  
 
 # With origin quintile-specific income levels and population sizes, and average income levels for ratio (both origin and destination)
 regirq1avavnog = reg(rename(gravity_quint[(gravity_quint[:,:quint_orig].=="q1"),:],:flow_quint=>:flow_q1), @formula(flow_q1 ~ pop_quint_orig + pop_quint_dest + ypc_quint_orig + ypcratio_avav + distance + exp_residual + remcost + comofflang + fe(year)), Vcov.cluster(:orig, :dest), save=true)
@@ -397,7 +397,7 @@ regirq3avavnog = reg(rename(gravity_quint[(gravity_quint[:,:quint_orig].=="q3"),
 regirq4avavnog = reg(rename(gravity_quint[(gravity_quint[:,:quint_orig].=="q4"),:],:flow_quint=>:flow_q4), @formula(flow_q4 ~ pop_quint_orig + pop_quint_dest + ypc_quint_orig + ypcratio_avav + distance + exp_residual + remcost + comofflang + fe(year)), Vcov.cluster(:orig, :dest), save=true)
 regirq5avavnog = reg(rename(gravity_quint[(gravity_quint[:,:quint_orig].=="q5"),:],:flow_quint=>:flow_q5), @formula(flow_q5 ~ pop_quint_orig + pop_quint_dest + ypc_quint_orig + ypcratio_avav + distance + exp_residual + remcost + comofflang + fe(year)), Vcov.cluster(:orig, :dest), save=true)
 
-regtable(regirq1avavnog,regirq2avavnog,regirq3avavnog,regirq4avavnog,regirq5avavnog; render = AsciiTable(),regression_statistics=[:nobs, :r2 ])     
+regtable(regirq1avavnog,regirq2avavnog,regirq3avavnog,regirq4avavnog,regirq5avavnog; regression_statistics=[:nobs, :r2 ])     
 
 # With origin and destination quintile-specific income levels and population sizes
 regirq1spspnog = reg(rename(gravity_quint[(gravity_quint[:,:quint_orig].=="q1"),:],:flow_quint=>:flow_q1), @formula(flow_q1 ~ pop_quint_orig + pop_quint_dest + ypc_quint_orig + ypcratio_spsp + distance + exp_residual + remcost + comofflang + fe(year)), Vcov.cluster(:orig, :dest), save=true)
@@ -406,7 +406,7 @@ regirq3spspnog = reg(rename(gravity_quint[(gravity_quint[:,:quint_orig].=="q3"),
 regirq4spspnog = reg(rename(gravity_quint[(gravity_quint[:,:quint_orig].=="q4"),:],:flow_quint=>:flow_q4), @formula(flow_q4 ~ pop_quint_orig + pop_quint_dest + ypc_quint_orig + ypcratio_spsp + distance + exp_residual + remcost + comofflang + fe(year)), Vcov.cluster(:orig, :dest), save=true)
 regirq5spspnog = reg(rename(gravity_quint[(gravity_quint[:,:quint_orig].=="q5"),:],:flow_quint=>:flow_q5), @formula(flow_q5 ~ pop_quint_orig + pop_quint_dest + ypc_quint_orig + ypcratio_spsp + distance + exp_residual + remcost + comofflang + fe(year)), Vcov.cluster(:orig, :dest), save=true)
 
-regtable(regirq1spspnog,regirq2spspnog,regirq3spspnog,regirq4spspnog,regirq5spspnog; render = AsciiTable(),regression_statistics=[:nobs, :r2 ]) 
+regtable(regirq1spspnog,regirq2spspnog,regirq3spspnog,regirq4spspnog,regirq5spspnog; regression_statistics=[:nobs, :r2 ]) 
 
 # With Gini
 regirq1avsp = reg(rename(gravity_quint[(gravity_quint[:,:quint_orig].=="q1"),:],:flow_quint=>:flow_q1), @formula(flow_q1 ~ pop_quint_orig + pop_quint_dest + ypc_quint_orig + ypcratio_avsp + gini_orig + gini_dest + distance + exp_residual + remcost + comofflang + fe(year)), Vcov.cluster(:orig, :dest), save=true)
@@ -415,7 +415,7 @@ regirq3avsp = reg(rename(gravity_quint[(gravity_quint[:,:quint_orig].=="q3"),:],
 regirq4avsp = reg(rename(gravity_quint[(gravity_quint[:,:quint_orig].=="q4"),:],:flow_quint=>:flow_q4), @formula(flow_q4 ~ pop_quint_orig + pop_quint_dest + ypc_quint_orig + ypcratio_avsp + gini_orig + gini_dest + distance + exp_residual + remcost + comofflang + fe(year)), Vcov.cluster(:orig, :dest), save=true)
 regirq5avsp = reg(rename(gravity_quint[(gravity_quint[:,:quint_orig].=="q5"),:],:flow_quint=>:flow_q5), @formula(flow_q5 ~ pop_quint_orig + pop_quint_dest + ypc_quint_orig + ypcratio_avsp + gini_orig + gini_dest + distance + exp_residual + remcost + comofflang + fe(year)), Vcov.cluster(:orig, :dest), save=true)
 
-regtable(regirq1avsp,regirq2avsp,regirq3avsp,regirq4avsp,regirq5avsp; render = AsciiTable(),regression_statistics=[:nobs, :r2 ])     
+regtable(regirq1avsp,regirq2avsp,regirq3avsp,regirq4avsp,regirq5avsp; regression_statistics=[:nobs, :r2 ])     
 
 # Estimation adding the ratio of Gini coefficients
 gravity_quint[!,:gini_ratio] = gravity_quint[:,:gini_dest] ./ gravity_quint[:,:gini_orig]
@@ -425,7 +425,7 @@ regirq3avspgr = reg(rename(gravity_quint[(gravity_quint[:,:quint_orig].=="q3"),:
 regirq4avspgr = reg(rename(gravity_quint[(gravity_quint[:,:quint_orig].=="q4"),:],:flow_quint=>:flow_q4), @formula(flow_q4 ~ pop_quint_orig + pop_quint_dest + ypc_quint_orig + ypcratio_avsp + gini_ratio + distance + exp_residual + remcost + comofflang + fe(year)), Vcov.cluster(:orig, :dest), save=true)
 regirq5avspgr = reg(rename(gravity_quint[(gravity_quint[:,:quint_orig].=="q5"),:],:flow_quint=>:flow_q5), @formula(flow_q5 ~ pop_quint_orig + pop_quint_dest + ypc_quint_orig + ypcratio_avsp + gini_ratio + distance + exp_residual + remcost + comofflang + fe(year)), Vcov.cluster(:orig, :dest), save=true)
 
-regtable(regirq1avspgr,regirq2avspgr,regirq3avspgr,regirq4avspgr,regirq5avspgr; render = AsciiTable(),regression_statistics=[:nobs, :r2 ])     
+regtable(regirq1avspgr,regirq2avspgr,regirq3avspgr,regirq4avspgr,regirq5avspgr; regression_statistics=[:nobs, :r2 ])     
 
 # Estimation adding common borders
 iso2c_iso3c = CSV.File(joinpath(@__DIR__,"../input_data/iso2c_iso3c.csv")) |> DataFrame
@@ -443,7 +443,7 @@ regirq3avspnogcb = reg(rename(gravity_quint[(gravity_quint[:,:quint_orig].=="q3"
 regirq4avspnogcb = reg(rename(gravity_quint[(gravity_quint[:,:quint_orig].=="q4"),:],:flow_quint=>:flow_q4), @formula(flow_q4 ~ pop_quint_orig + pop_quint_dest + ypc_quint_orig + ypcratio_avsp + distance + exp_residual + remcost + comofflang + commonborder + fe(year)), Vcov.cluster(:orig, :dest), save=true)
 regirq5avspnogcb = reg(rename(gravity_quint[(gravity_quint[:,:quint_orig].=="q5"),:],:flow_quint=>:flow_q5), @formula(flow_q5 ~ pop_quint_orig + pop_quint_dest + ypc_quint_orig + ypcratio_avsp + distance + exp_residual + remcost + comofflang + commonborder + fe(year)), Vcov.cluster(:orig, :dest), save=true)
 
-regtable(regirq1avspnogcb,regirq2avspnogcb,regirq3avspnogcb,regirq4avspnogcb,regirq5avspnogcb; render = AsciiTable(),regression_statistics=[:nobs, :r2 ])      
+regtable(regirq1avspnogcb,regirq2avspnogcb,regirq3avspnogcb,regirq4avspnogcb,regirq5avspnogcb; regression_statistics=[:nobs, :r2 ])      
 
 # Specifications with origin and destination fixed effects
 regirq1avspnogfe = reg(rename(gravity_quint[(gravity_quint[:,:quint_orig].=="q1"),:],:flow_quint=>:flow_q1), @formula(flow_q1 ~ pop_quint_orig + pop_quint_dest + ypc_quint_orig + ypcratio_avsp + distance + exp_residual + remcost + comofflang + fe(orig) + fe(dest) + fe(year)), Vcov.cluster(:orig, :dest), save=true)
@@ -452,7 +452,7 @@ regirq3avspnogfe = reg(rename(gravity_quint[(gravity_quint[:,:quint_orig].=="q3"
 regirq4avspnogfe = reg(rename(gravity_quint[(gravity_quint[:,:quint_orig].=="q4"),:],:flow_quint=>:flow_q4), @formula(flow_q4 ~ pop_quint_orig + pop_quint_dest + ypc_quint_orig + ypcratio_avsp + distance + exp_residual + remcost + comofflang + fe(orig) + fe(dest) + fe(year)), Vcov.cluster(:orig, :dest), save=true)
 regirq5avspnogfe = reg(rename(gravity_quint[(gravity_quint[:,:quint_orig].=="q5"),:],:flow_quint=>:flow_q5), @formula(flow_q5 ~ pop_quint_orig + pop_quint_dest + ypc_quint_orig + ypcratio_avsp + distance + exp_residual + remcost + comofflang + fe(orig) + fe(dest) + fe(year)), Vcov.cluster(:orig, :dest), save=true)
 
-regtable(regirq1avspnogfe,regirq2avspnogfe,regirq3avspnogfe,regirq4avspnogfe,regirq5avspnogfe; render = AsciiTable(),regression_statistics=[:nobs, :r2 ])      
+regtable(regirq1avspnogfe,regirq2avspnogfe,regirq3avspnogfe,regirq4avspnogfe,regirq5avspnogfe; regression_statistics=[:nobs, :r2 ])      
 
 
 # Main specification: including ratio of average income at destination and specific income at origin, and linear effect of specific income at origin.
@@ -531,7 +531,7 @@ regsd3 = reg(rename(gravity_quint[(gravity_quint[:,:quint_dest].=="q3"),:],:flow
 regsd4 = reg(rename(gravity_quint[(gravity_quint[:,:quint_dest].=="q4"),:],:flowshare_quintdest=>:flowshare_qdest4), @formula(flowshare_qdest4 ~ ypc_rel_destqor), Vcov.cluster(:orig, :dest))
 regsd5 = reg(rename(gravity_quint[(gravity_quint[:,:quint_dest].=="q5"),:],:flowshare_quintdest=>:flowshare_qdest5), @formula(flowshare_qdest5 ~ ypc_rel_destqor), Vcov.cluster(:orig, :dest))
 
-regtable(regsd1,regsd2,regsd3,regsd4,regsd5; render = AsciiTable(),regression_statistics=[:nobs, :r2 ])     
+regtable(regsd1,regsd2,regsd3,regsd4,regsd5; regression_statistics=[:nobs, :r2 ])     
 
 gamma_quint = DataFrame(
     regtype = ["reg_sharedest_q1","reg_sharedest_q2", "reg_sharedest_q3","reg_sharedest_q4", "reg_sharedest_q5"],
@@ -575,4 +575,4 @@ regsdt1 = reg(rename(gravity_terc[(gravity_terc[:,:terc_dest].=="t1"),:],:flowsh
 regsdt2 = reg(rename(gravity_terc[(gravity_terc[:,:terc_dest].=="t2"),:],:flowshare_tercdest=>:flowshare_tdest2), @formula(flowshare_tdest2 ~ ypc_rel_desttor), Vcov.cluster(:orig, :dest))
 regsdt3 = reg(rename(gravity_terc[(gravity_terc[:,:terc_dest].=="t3"),:],:flowshare_tercdest=>:flowshare_tdest3), @formula(flowshare_tdest3 ~ ypc_rel_desttor), Vcov.cluster(:orig, :dest))
 
-regtable(regsdt1,regsdt2,regsdt3; render = AsciiTable(),regression_statistics=[:nobs, :r2 ])     
+regtable(regsdt1,regsdt2,regsdt3; regression_statistics=[:nobs, :r2 ])     
