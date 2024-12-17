@@ -384,7 +384,7 @@ leave_quint_ccshare[!,:type_name] = [leave_quint_ccshare[i,:damage_elasticity]==
 leave_quint_ccshare = innerjoin(leave_quint_ccshare, regions_fullname, on=:fundregion)
 
 # For SSP2, this gives Extended Data Fig.3
-# For SSP3, this gives  Fig.4
+# For SSP3, this gives Extended Data Fig.4
 for s in ssps
     leave_quint_ccshare |> @filter(_.year >= 2015 && _.year <= 2100 && _.scen == s) |> @vlplot(
         mark={:point,size=60}, width=300, height=250, columns=4, wrap={"regionname:o", title=nothing, header={labelFontSize=24}}, 
