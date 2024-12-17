@@ -459,7 +459,7 @@ regtable(regirq1avspnogfe,regirq2avspnogfe,regirq3avspnogfe,regirq4avspnogfe,reg
 # Estimation for each origin quintile. Will be followed by estimation of repartition in each destination quintile.
 beta_quint_ratio = DataFrame(
     regtype = ["reg_quint_ratioavsp_q1","reg_quint_ratioavsp_q2", "reg_quint_ratioavsp_q3","reg_quint_ratioavsp_q4", "reg_quint_ratioavsp_q5"],
-    beta1 = [0.801,0.189,0.786,0.788,0.794],       # pop_quint_orig
+    beta1 = [0.801,0.789,0.786,0.788,0.794],       # pop_quint_orig
     beta2 = [0.706,0.707,0.707,0.706,0.710],       # pop_quint_dest
     beta4 = [1.644,1.767,1.807,1.877,1.873],       # ypc_quint_orig
     beta5 = [1.161,1.162,1.157,1.157,1.141],       # ypcratio_avsp
