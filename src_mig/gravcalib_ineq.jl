@@ -459,14 +459,14 @@ regtable(regirq1avspnogfe,regirq2avspnogfe,regirq3avspnogfe,regirq4avspnogfe,reg
 # Estimation for each origin quintile. Will be followed by estimation of repartition in each destination quintile.
 beta_quint_ratio = DataFrame(
     regtype = ["reg_quint_ratioavsp_q1","reg_quint_ratioavsp_q2", "reg_quint_ratioavsp_q3","reg_quint_ratioavsp_q4", "reg_quint_ratioavsp_q5"],
-    beta1 = [0.801,0.789,0.786,0.788,0.794],       # pop_quint_orig
+    beta1 = [0.801,0.789,0.787,0.786,0.794],       # pop_quint_orig
     beta2 = [0.706,0.707,0.707,0.706,0.710],       # pop_quint_dest
-    beta4 = [1.644,1.767,1.807,1.877,1.873],       # ypc_quint_orig
-    beta5 = [1.161,1.162,1.157,1.157,1.141],       # ypcratio_avsp
-    beta7 = [-1.029,-1.039,-1.045,-1.025,-1.089],   # distance
-    beta8 = [-0.004,-0.005,-0.003,-0.003,-0.000],       # exp_residual
-    beta9 = [-16.684,-17.021,-17.268,-17.316,-18.785],       # remcost
-    beta10 = [1.516,1.466,1.440,1.449,1.279]       # comofflang
+    beta4 = [1.649,1.775,1.808,1.876,1.871],       # ypc_quint_orig
+    beta5 = [1.162,1.164,1.159,1.158,1.141],       # ypcratio_avsp
+    beta7 = [-1.025,-1.035,-1.043,-1.027,-1.089],   # distance
+    beta8 = [-0.004,-0.005,-0.003,-0.004,-0.000],       # exp_residual
+    beta9 = [-16.911,-17.111,-17.184,-17.476,-18.635],       # remcost
+    beta10 = [1.523,1.472,1.446,1.449,1.274]       # comofflang
 )
 
 # Compute constant including year fixed effect as average of beta0 + yearFE
@@ -535,8 +535,8 @@ regtable(regsd1,regsd2,regsd3,regsd4,regsd5; regression_statistics=[:nobs, :r2 ]
 
 gamma_quint = DataFrame(
     regtype = ["reg_sharedest_q1","reg_sharedest_q2", "reg_sharedest_q3","reg_sharedest_q4", "reg_sharedest_q5"],
-    gamma0 = [-1.878,-1.837,-1.910,-1.684,-1.108],       # intercept
-    gamma1 = [0.015,-0.002,0.014,0.034,-0.028],       # ypc_dest / ypc_quint_orig
+    gamma0 = [-1.884,-1.833,-1.910,-1.681,-1.109],       # intercept
+    gamma1 = [0.019,0.000,0.013,0.032,-0.029],       # ypc_dest / ypc_quint_orig
 )
 
 
